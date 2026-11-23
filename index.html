@@ -869,7 +869,7 @@ function libCard(it){
     <div class="body">
       <div class="typ">${esc(it.typeName||TYPE_NAMES[it.type]||'')}</div>
       <h3>${esc(it.title)}</h3>
-      <button class="btn blue copybtn" onclick="event.stopPropagation();copyLink(this,'${link}')">📋 复制导入链接</button>
+      <button class="btn blue copybtn" onclick="event.stopPropagation();openLink(this,'${link}')">🔗 打开阵型链接</button>
     </div>
   </div>`;
 }
@@ -1026,6 +1026,17 @@ function importSharePack(e){
   r.readAsText(f); e.target.value='';
 }
 
+/* 打开阵型链接（点击直接跳转） */
+function openLink(btn, link){
+  const txt = link.replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,'&');
+  if(!txt){ toast('没有链接','err'); return; }
+  // 新窗口/新标签打开；会尝试唤起 COC（link.clashofclans.com）
+  const w = window.open(txt, '_blank');
+  if(!w){ // 被拦截则降级：复制并提示
+    fallbackCopy(txt, ()=>toast('已复制链接，去浏览器/游戏打开','ok'));
+  }
+}
+
 /* 复制导入链接 */
 function copyLink(btn, link){  const txt = link.replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,'&');
   const done = ()=>{ btn.classList.add('copied'); btn.textContent='✅ 已复制'; setTimeout(()=>{btn.classList.remove('copied');btn.textContent='📋 复制导入链接';},1600); };
@@ -1136,7 +1147,7 @@ function renderMine(){
         <h3>${esc(b.name||'未命名阵型')}</h3>
         ${(b.tags||[]).length?`<div style="font-size:11.5px;color:var(--sub)">${esc((b.tags||[]).join(' · '))}</div>`:''}
         ${noImg && !b.fromCloud?`<button class="btn primary copybtn" onclick="event.stopPropagation();uploadShot('${b.id}')">📷 上传截图补图</button>`:''}
-        ${b.link?`<button class="btn blue copybtn" onclick="event.stopPropagation();copyLink(this,'${escAttr(b.link)}')">📋 复制导入链接</button>`:''}
+        ${b.link?`<button class="btn blue copybtn" onclick="event.stopPropagation();openLink(this,'${escAttr(b.link)}')">🔗 打开阵型链接</button>`:''}
       </div>
     </div>`;
   }).join('');
