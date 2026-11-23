@@ -400,37 +400,6 @@
   </div>
 </div>
 
-<!-- ============ 防守效果反馈弹窗 ============ -->
-<div class="overlay" id="fbOverlay">
-  <div class="modal">
-    <h2>💬 上传防守效果</h2>
-    <div class="hint" id="fbSub">分享这个阵型的实战防守效果，帮别人判断好不好用。</div>
-
-    <div class="field"><label>防守结果</label>
-      <div class="fbres" id="fbResult">
-        <button type="button" data-r="held" onclick="pickResult('held',this)">🛡️ 守住了（防住三星）</button>
-        <button type="button" data-r="partial" onclick="pickResult('partial',this)">⚔️ 部分被破（被两星）</button>
-        <button type="button" data-r="broken" onclick="pickResult('broken',this)">💥 被平推（被三星）</button>
-      </div>
-    </div>
-
-    <div class="field"><label>对手主攻打法 / 流派（可多选，用于统计克制）</label>
-      <div class="streams" id="fbStreams"></div>
-    </div>
-
-    <div class="field"><label>补充说明（可选）</label>
-      <textarea id="fbText" placeholder="如：对面雷龙绕圈半天没打进来，防空外置很关键…"></textarea>
-    </div>
-
-    <div class="field" id="fbRecList"></div>
-
-    <div class="foot">
-      <button class="btn ghost" onclick="closeFeedback()">取消</button>
-      <button class="btn primary" onclick="submitFeedback()">提交反馈</button>
-    </div>
-  </div>
-</div>
-
 <!-- ============ 导入菜单 ============ -->
 <div class="overlay" id="importMenuOverlay">
   <div class="modal">
@@ -889,9 +858,6 @@ function loadMoreLib(){ lib.page++; renderLib(false); }
 
 function libCard(it){
   const isFav = mine.some(m=>m.link && it.link && m.link===it.link);
-  const key = baseKeyOf(it);
-  const s = getStats(key);
-  const mv = myVotes[key];
   const title = escAttr(it.title), link = escAttr(it.link);
   return `<div class="card">
     <div class="thumb" onclick="openLightbox('${escAttr(it.img)}','${escAttr(it.title)}')">
@@ -903,76 +869,20 @@ function libCard(it){
     <div class="body">
       <div class="typ">${esc(it.typeName||TYPE_NAMES[it.type]||'')}</div>
       <h3>${esc(it.title)}</h3>
-
-      <div class="votebar" data-vote="${key}">
-        <button class="vbtn up ${mv==='up'?'on':''}" onclick="event.stopPropagation();vote('${key}','up',this)" title="点赞">
-          👍 <span class="n">${s.up}</span>
-        </button>
-        <button class="vbtn down ${mv==='down'?'on':''}" onclick="event.stopPropagation();vote('${key}','down',this)" title="踩">
-          👎 <span class="n">${s.down}</span>
-        </button>
-        <button class="vbtn fb" onclick="event.stopPropagation();openFeedback('${key}','${title}')" title="上传防守效果">
-          💬 反馈
-        </button>
-        <button class="vbtn sh" onclick="event.stopPropagation();shareBase('${key}','${title}','${link}')" title="转发">↗ ${s.shares||0}</button>
-      </div>
-
-      <div class="counter" data-counter="${key}">${counterBarHTML(countersArr(s))}</div>
-
       <button class="btn blue copybtn" onclick="event.stopPropagation();copyLink(this,'${link}')">📋 复制导入链接</button>
     </div>
   </div>`;
 }
 
 /* ================= 防守效果反馈 ================= */
-const STREAMS = ['雷龙','飞龙','超级飞龙','气球','矿工','野猪','超级野猪','女武神','龙骑','根蔓骑士','雪怪','皮卡','超级皮卡','天使治疗','冰冻法术流','雷电爆本','狂暴冲车','攻城机器','机械','蝙蝠法术','其它'];
+const STREAMS = [];
 let fbState = { key:null, title:'', result:null, streams:[] };
-
-function openFeedback(key, title){
-  fbState = { key, title, result:null, streams:[] };
-  document.getElementById('fbSub').textContent = '为「' + (title||'该阵型') + '」上传实战防守效果，帮别人判断好不好用。';
-  document.getElementById('fbText').value='';
-  document.querySelectorAll('#fbResult button').forEach(b=>b.classList.remove('on'));
-  // 流派多选按钮
-  document.getElementById('fbStreams').innerHTML = STREAMS.map(s=>
-    `<button type="button" class="streamchip" data-s="${esc(s)}" onclick="toggleStream(this)">${esc(s)}</button>`).join('');
-  // 已有统计
-  const s = getStats(key);
-  const rec = document.getElementById('fbRecList');
-  const ca = countersArr(s);
-  if(ca.length){
-    rec.innerHTML = `<label>当前克制流派统计</label><div>${counterBarHTML(ca)}</div>`;
-  } else rec.innerHTML='';
-  document.getElementById('fbOverlay').classList.add('show');
-}
-function closeFeedback(){ document.getElementById('fbOverlay').classList.remove('show'); }
-function pickResult(r, btn){
-  fbState.result = r;
-  document.querySelectorAll('#fbResult button').forEach(b=>b.classList.toggle('on', b.dataset.r===r));
-}
-function toggleStream(btn){
-  const s = btn.dataset.s;
-  const i = fbState.streams.indexOf(s);
-  if(i>=0){ fbState.streams.splice(i,1); btn.classList.remove('on'); }
-  else { fbState.streams.push(s); btn.classList.add('on'); }
-}
-function submitFeedback(){
-  if(!fbState.result && fbState.streams.length===0 && !document.getElementById('fbText').value.trim()){
-    toast('至少选择防守结果或对手流派','err'); return;
-  }
-  const key = fbState.key;
-  const text = document.getElementById('fbText').value.trim();
-  const s = getStats(key);
-  // 本地写入
-  s.feedback.unshift({ text, result:fbState.result||'', streams:fbState.streams.slice(), ts:Date.now(), mine:true });
-  if(s.feedback.length>200) s.feedback.length=200;
-  fbState.streams.forEach(st=>{ s.counters[st]=(s.counters[st]||0)+1; });
-  saveLocalStats();
-  refreshCounterUI(key);
-  closeFeedback();
-  toast('✅ 反馈已提交，感谢分享防守效果！','ok');
-  if(apiOnline) syncFeedback(key,text,fbState.result||'',fbState.streams);
-}
+// 反馈/评论功能已移除（仅保留阵型+图片），以下为空壳占位防止旧引用报错
+function openFeedback(){ toast('反馈功能已移除'); }
+function closeFeedback(){}
+function pickResult(){}
+function toggleStream(){}
+function submitFeedback(){}
 
 /* ================= 共享包（无需服务器，靠 key + 文件） ================= */
 const MYKEY_STORE='coc_my_share_key';
@@ -1187,7 +1097,7 @@ function renderMine(){
         ` <button class="btn primary small" style="padding:4px 12px" onclick="batchDeleteSelected()">🗑️ 删除所选</button>` +
         ` <button class="btn ghost small" style="padding:4px 12px" onclick="selectAllVisible()">全选</button>` +
         ` <button class="btn ghost small" style="padding:4px 12px" onclick="exitSelectMode()">取消</button>`
-      : ` <button class="btn primary small" style="padding:4px 12px" onclick="uploadMineToCloud()">☁️ 上传到云端（让别人看/点赞）</button>` +
+      : ` <button class="btn primary small" style="padding:4px 12px" onclick="uploadMineToCloud()">☁️ 上传到云端（让别人看）</button>` +
         ` <button class="btn ghost small" style="padding:4px 12px" onclick="openImportMenu()">📥 导入阵型</button>` +
         ` <button class="btn ghost small" style="padding:4px 12px" onclick="dedupeMine()">🧹 一键去重</button>` +
         ` <button class="btn ghost small" style="padding:4px 12px" onclick="enterSelectMode()">✅ 选择删除</button>`
@@ -1211,9 +1121,6 @@ function renderMine(){
       if(hit) cloudId = hit.id;
     }
     const isCloud = !!cloudId;
-    const key = isCloud ? ('custom_'+cloudId) : ('custom_'+(b.id||''));
-    const st = getStats(key);
-    const mv = myVotes[key];
     return `
     <div class="card ${noImg?'pending':''} ${isCloud?'cloudcard':''} ${selectMode&&selected.has(b.id)?'selected':''}">
       ${selectMode?`<input type="checkbox" class="selbox" ${selected.has(b.id)?'checked':''} onclick="event.stopPropagation();toggleSelect('${b.id}',this)">`:''}
@@ -1228,33 +1135,14 @@ function renderMine(){
         ${b.type?`<div class="typ">${esc(b.type)}${isCloud?' · ☁云端':''}</div>`:''}
         <h3>${esc(b.name||'未命名阵型')}</h3>
         ${(b.tags||[]).length?`<div style="font-size:11.5px;color:var(--sub)">${esc((b.tags||[]).join(' · '))}</div>`:''}
-        ${isCloud?`
-          <div class="votebar" data-vote="${key}">
-            <button class="vbtn up ${mv==='up'?'on':''}" onclick="event.stopPropagation();vote('${key}','up',this)">👍 <span class="n">${st.up}</span></button>
-            <button class="vbtn down ${mv==='down'?'on':''}" onclick="event.stopPropagation();vote('${key}','down',this)">👎 <span class="n">${st.down}</span></button>
-            <button class="vbtn fb" onclick="event.stopPropagation();openComment('${key}','${escAttr(b.name)}')">💬 评论</button>
-          </div>
-        `:''}
         ${noImg && !b.fromCloud?`<button class="btn primary copybtn" onclick="event.stopPropagation();uploadShot('${b.id}')">📷 上传截图补图</button>`:''}
         ${b.link?`<button class="btn blue copybtn" onclick="event.stopPropagation();copyLink(this,'${escAttr(b.link)}')">📋 复制导入链接</button>`:''}
       </div>
     </div>`;
   }).join('');
 }
-// 评论（复用反馈弹窗，简化为纯文字评论 + 分类）
-function openComment(key, title){
-  commentState.key = key;
-  // 同步到 fbState，复用 submitFeedback 提交逻辑
-  fbState = { key, title, result:null, streams:[] };
-  document.getElementById('fbSub').textContent = '给「'+(title||'该阵型')+'」评论：说说它好不好用、防住什么流派';
-  document.getElementById('fbText').value='';
-  document.getElementById('fbResult').style.display='none';
-  document.querySelectorAll('#fbResult button').forEach(b=>b.classList.remove('on'));
-  document.getElementById('fbStreams').innerHTML = STREAMS.map(s=>
-    `<button type="button" class="streamchip" data-s="${esc(s)}" onclick="toggleStream(this)">${esc(s)}</button>`).join('');
-  document.getElementById('fbRecList').innerHTML='';
-  document.getElementById('fbOverlay').classList.add('show');
-}
+// 评论功能已移除
+function openComment(){ toast('评论功能已移除'); }
 function delMine(id){
   if(String(id).startsWith('cloud_')){
     if(!confirm('这是云端阵型，删除会从服务器移除（所有人看不到）？')) return;
