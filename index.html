@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>部落冲突阵型数据库 · 4本~19本全覆盖</title>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#1a2233; --panel2:#222c42; --line:#2e3a54;
+    --txt:#e8edf7; --sub:#8fa0bf; --acc:#f5b731; --acc2:#4a9eff;
+    --danger:#ff5a6a; --ok:#3ddc84;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+    background:radial-gradient(1200px 600px at 20% -10%,#1c2a45 0%,var(--bg) 55%);
+    color:var(--txt);min-height:100vh;
+  }
+  header{
+    position:sticky;top:0;z-index:50;
+    background:rgba(15,20,32,.88);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+    padding:12px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  }
+  header h1{font-size:19px;font-weight:800;letter-spacing:.5px;display:flex;align-items:center;gap:10px}
+  header h1 .logo{
+    width:30px;height:30px;border-radius:8px;
+    background:linear-gradient(135deg,var(--acc),#e08a00);
+    display:grid;place-items:center;font-size:17px;box-shadow:0 3px 10px rgba(245,183,49,.35)
+  }
+  .toolbar{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .btn{
+    border:1px solid var(--line);background:var(--panel2);color:var(--txt);
+    padding:8px 15px;border-radius:9px;cursor:pointer;font-size:14px;font-weight:600;
+    transition:.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+  }
+  .btn:hover{background:#2b3752;border-color:#3d4d6e;transform:translateY(-1px)}
+  .btn.primary{background:linear-gradient(135deg,var(--acc),#e08a00);color:#241a00;border:none;box-shadow:0 4px 14px rgba(245,183,49,.3)}
+  .btn.primary:hover{filter:brightness(1.08)}
+  .btn.blue{background:linear-gradient(135deg,var(--acc2),#2f6fd0);color:#fff;border:none}
+  .btn.small{padding:6px 11px;font-size:13px}
+  .btn.ghost{background:transparent}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+  /* ===== 主标签：阵型库 / 我的阵型 ===== */
+  .mainTabs{display:flex;gap:8px;padding:14px 22px 0}
+  .mainTab{
+    padding:10px 20px;border-radius:11px 11px 0 0;cursor:pointer;
+    font-size:14.5px;font-weight:700;color:var(--sub);background:transparent;
+    border:1px solid transparent;border-bottom:none;transition:.15s;
+  }
+  .mainTab.active{color:var(--txt);background:var(--panel);border-color:var(--line)}
+  .pane{display:none}
+  .pane.active{display:block}
+
+  /* ===== 筛选区 ===== */
+  .filterbar{padding:16px 22px 6px}
+  .segRow{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+  .seg{
+    display:inline-flex;background:var(--panel);border:1px solid var(--line);
+    border-radius:11px;padding:4px;gap:4px;
+  }
+  .seg button{
+    border:none;background:transparent;color:var(--sub);padding:8px 18px;
+    border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;transition:.15s;
+  }
+  .seg button.on{background:linear-gradient(135deg,var(--acc),#e08a00);color:#241a00}
+  .seg button.on.blue{background:linear-gradient(135deg,var(--acc2),#2f6fd0);color:#fff}
+
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .chip{
+    padding:7px 15px;border-radius:20px;border:1px solid var(--line);background:var(--panel);
+    color:var(--sub);cursor:pointer;font-size:13.5px;font-weight:600;transition:.15s;
+  }
+  .chip:hover{border-color:#3d4d6e;color:var(--txt)}
+  .chip.on{background:var(--acc2);border-color:var(--acc2);color:#fff}
+  .chip .cnt{opacity:.7;font-size:11.5px;margin-left:3px}
+  .flabel{font-size:12px;color:var(--sub);font-weight:700;margin:4px 0 8px;letter-spacing:.5px}
+
+  .grid{
+    display:grid;gap:16px;padding:18px 22px 20px;
+    grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+  }
+  .card{
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    transition:.18s;position:relative;display:flex;flex-direction:column;
+  }
+  .card:hover{transform:translateY(-3px);border-color:var(--acc);box-shadow:0 12px 28px rgba(0,0,0,.45)}
+  .card .thumb{
+    width:100%;aspect-ratio:1/1;background:
+      repeating-conic-gradient(#1c2740 0% 25%,#16203a 0% 50%) 50%/22px 22px;
+    position:relative;overflow:hidden;cursor:zoom-in;
+  }
+  .card .thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:.3s}
+  .card:hover .thumb img{transform:scale(1.04)}
+  .card .thumb .ph{position:absolute;inset:0;display:grid;place-items:center;color:#43547a;font-size:32px}
+  .card .badge{
+    position:absolute;top:8px;left:8px;background:rgba(0,0,0,.68);
+    padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:800;color:var(--acc);
+    border:1px solid rgba(245,183,49,.4);backdrop-filter:blur(4px);
+  }
+  .card .body{padding:11px 13px 13px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .card .body h3{font-size:13.5px;font-weight:700;line-height:1.35;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.7em}
+  .card .body .typ{font-size:11.5px;color:var(--acc2);font-weight:700}
+  .card .copybtn{
+    margin-top:auto;width:100%;justify-content:center;padding:8px;font-size:12.5px;
+  }
+  .card .copybtn.copied{background:linear-gradient(135deg,var(--ok),#26a862)!important;color:#06240f!important;border:none!important}
+  .card .fav{
+    position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;
+    background:rgba(0,0,0,.55);border:1px solid var(--line);color:#fff;cursor:pointer;
+    font-size:15px;display:grid;place-items:center;z-index:3;transition:.15s;
+  }
+  .card .fav:hover{background:rgba(0,0,0,.8)}
+  .card .fav.on{color:var(--acc)}
+
+  .stats{padding:0 22px;color:var(--sub);font-size:13px;margin-bottom:4px}
+  .stats b{color:var(--acc)}
+
+  .loadmore{display:flex;justify-content:center;padding:6px 22px 50px}
+  .loadmore .btn{padding:11px 36px;font-size:14px}
+
+  .empty{grid-column:1/-1;text-align:center;padding:70px 20px;color:var(--sub)}
+  .empty .big{font-size:50px;margin-bottom:14px}
+  .empty h3{color:var(--txt);font-size:17px;margin-bottom:8px}
+
+  /* skeleton */
+  .sk{width:100%;aspect-ratio:3/4;border-radius:14px;background:linear-gradient(100deg,#1a2233 30%,#222c42 50%,#1a2233 70%);background-size:200% 100%;animation:sk 1.2s infinite}
+  @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+  /* Modal */
+  .overlay{
+    position:fixed;inset:0;background:rgba(5,8,15,.8);backdrop-filter:blur(6px);
+    z-index:100;display:none;align-items:center;justify-content:center;padding:24px;
+  }
+  .overlay.show{display:flex}
+  .modal{
+    background:var(--panel);border:1px solid var(--line);border-radius:18px;
+    width:100%;max-width:540px;max-height:90vh;overflow:auto;padding:24px;
+    box-shadow:0 24px 70px rgba(0,0,0,.6);
+  }
+  .modal.wide{max-width:820px}
+  .modal h2{font-size:19px;margin-bottom:4px;display:flex;align-items:center;gap:9px}
+  .modal .hint{color:var(--sub);font-size:13px;margin-bottom:16px;line-height:1.6}
+  .field{margin-bottom:13px}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#c6d2e8}
+  .field input,.field select,.field textarea{
+    width:100%;background:var(--bg);border:1px solid var(--line);color:var(--txt);
+    padding:10px 13px;border-radius:9px;font-size:14px;outline:none;font-family:inherit;
+  }
+  .field input:focus,.field textarea:focus{border-color:var(--acc2)}
+  .field textarea{resize:vertical;min-height:56px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .modal .foot{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+  .prevbox{
+    width:100%;aspect-ratio:16/10;border:2px dashed var(--line);border-radius:12px;
+    display:grid;place-items:center;color:var(--sub);font-size:13px;overflow:hidden;
+    background:var(--bg);margin-bottom:14px;
+  }
+  .prevbox img{width:100%;height:100%;object-fit:contain}
+  .tabs{display:flex;gap:8px;margin-bottom:16px}
+  .tabbtn{flex:1;text-align:center;padding:9px;border-radius:9px;background:var(--bg);border:1px solid var(--line);cursor:pointer;font-size:13px;font-weight:600;color:var(--sub);transition:.15s}
+  .tabbtn.active{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+  .tabpane{display:none}
+  .tabpane.active{display:block}
+
+  /* lightbox */
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:150;display:none;align-items:center;justify-content:center;padding:20px}
+  .lightbox.show{display:flex}
+  .lightbox img{max-width:94vw;max-height:90vh;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.7)}
+  .lightbox .cl{position:absolute;top:18px;right:26px;font-size:38px;color:#fff;cursor:pointer;line-height:1}
+  .lightbox .cap{position:absolute;bottom:24px;left:0;right:0;text-align:center;color:#cfd9ec;font-size:14px;padding:0 20px}
+
+  /* crop */
+  .cropwrap{position:relative;display:inline-block;max-width:100%}
+  .cropwrap img{max-width:100%;display:block;border-radius:10px}
+  .croprect{position:absolute;border:2px solid var(--acc);background:rgba(245,183,49,.18);display:none;pointer-events:none}
+
+  /* toast */
+  .toast{
+    position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+    padding:12px 22px;border-radius:11px;font-size:14px;z-index:200;opacity:0;
+    transition:.25s;box-shadow:0 10px 30px rgba(0,0,0,.5);pointer-events:none;max-width:90vw;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.err{border-color:var(--danger);color:#ffb3bb}
+  .toast.ok{border-color:var(--ok)}
+
+  @media(max-width:640px){
+    header h1{font-size:16px}
+    .grid{grid-template-columns:repeat(2,1fr);gap:10px;padding:12px}
+    .row2{grid-template-columns:1fr}
+    .modal{padding:18px}
+    .mainTab{padding:9px 14px;font-size:13px}
+    .seg button{padding:7px 13px;font-size:13px}
+    .chip{padding:6px 12px;font-size:12.5px}
+  }
+
+  /* ===== 连接状态徽标 ===== */
+  .conn{font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:6px}
+  .conn.on{color:#3ddc84;background:rgba(61,220,132,.12);border:1px solid rgba(61,220,132,.35)}
+  .conn.off{color:#ff5a6a;background:rgba(255,90,106,.1);border:1px solid rgba(255,90,106,.35)}
+  .conn.wait{color:#8fa0bf;background:rgba(143,160,191,.1);border:1px solid rgba(143,160,191,.3)}
+  .conn.local{color:#4a9eff;background:rgba(74,158,255,.12);border:1px solid rgba(74,158,255,.35)}
+  .conn.shared{color:#f5b731;background:rgba(245,183,49,.12);border:1px solid rgba(245,183,49,.4)}
+
+  /* ===== 点赞/踩/反馈/转发 ===== */
+  .votebar{display:flex;gap:5px;margin:2px 0 2px}
+  .vbtn{
+    flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;
+    padding:6px 4px;border-radius:8px;border:1px solid var(--line);background:var(--bg);
+    color:var(--sub);cursor:pointer;font-size:12px;font-weight:700;transition:.15s;font-family:inherit;
+  }
+  .vbtn:hover{background:#232e46;color:var(--txt)}
+  .vbtn.up.on{background:rgba(61,220,132,.16);border-color:rgba(61,220,132,.5);color:#3ddc84}
+  .vbtn.down.on{background:rgba(255,90,106,.14);border-color:rgba(255,90,106,.5);color:#ff5a6a}
+  .vbtn.up:hover{color:#3ddc84}
+  .vbtn.down:hover{color:#ff5a6a}
+  .vbtn.fb{flex:0 0 auto;padding:6px 9px}
+  .vbtn.sh{flex:0 0 auto;padding:6px 9px}
+  .vbtn .n{font-variant-numeric:tabular-nums}
+
+  /* ===== 克制流派统计条 ===== */
+  .counter{display:flex;flex-direction:column;gap:4px;margin:2px 0 4px;padding:7px 8px;background:rgba(0,0,0,.22);border-radius:8px}
+  .counter .cnt-empty{font-size:11px;color:#5f7096}
+  .cbar{display:flex;align-items:center;gap:6px;font-size:11px}
+  .cbar .cname{flex:0 0 58px;color:#c6d2e8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cbar .ctrack{flex:1;height:7px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden}
+  .cbar .cfill{display:block;height:100%;background:linear-gradient(90deg,#4a9eff,#f5b731);border-radius:4px}
+  .cbar .cval{flex:0 0 auto;color:var(--acc);font-weight:700;min-width:16px;text-align:right}
+
+  /* ===== 反馈弹窗 ===== */
+  .fbres{display:flex;flex-direction:column;gap:8px}
+  .fbres button{
+    padding:11px 14px;text-align:left;border-radius:10px;border:1px solid var(--line);
+    background:var(--bg);color:var(--txt);cursor:pointer;font-size:14px;font-weight:600;transition:.15s;font-family:inherit;
+  }
+  .fbres button:hover{border-color:#3d4d6e}
+  .fbres button.on{background:rgba(74,158,255,.16);border-color:var(--acc2);color:#fff}
+  .streams{display:flex;flex-wrap:wrap;gap:7px}
+  .streamchip{
+    padding:6px 12px;border-radius:20px;border:1px solid var(--line);background:var(--bg);
+    color:var(--sub);cursor:pointer;font-size:12.5px;font-weight:600;transition:.15s;font-family:inherit;
+  }
+  .streamchip:hover{border-color:#3d4d6e;color:var(--txt)}
+  .streamchip.on{background:var(--acc);border-color:var(--acc);color:#241a00}
+
+  /* ===== 待补图卡片 ===== */
+  .card.pending{border-style:dashed;border-color:#4a5b7d}
+  .card.pending .thumb{background:repeating-linear-gradient(45deg,#161e31 0 12px,#1a2233 12px 24px);cursor:default}
+  .pendingTag{position:absolute;top:8px;left:8px;background:rgba(245,183,49,.9);color:#241a00;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:800}
+  .card.cloudcard{border-color:rgba(74,158,255,.4)}
+  .card.cloudcard .fav{color:#4a9eff}
+  .card.selected{border-color:var(--acc)!important;box-shadow:0 0 0 2px var(--acc) inset}
+  .card .selbox{position:absolute;top:9px;left:9px;width:22px;height:22px;z-index:5;cursor:pointer;accent-color:var(--acc)}
+
+  /* ===== 剪贴板监听条 ===== */
+  #clipWatchBar{
+    position:fixed;bottom:0;left:0;right:0;z-index:210;display:none;align-items:center;justify-content:center;gap:14px;
+    background:linear-gradient(90deg,#c0392b,#e74c3c);color:#fff;padding:10px 18px;font-size:13.5px;font-weight:600;
+    box-shadow:0 -6px 24px rgba(0,0,0,.5);transition:.2s;
+  }
+  #clipWatchBar.flash{background:linear-gradient(90deg,#27ae60,#3ddc84)}
+  #clipWatchBar button{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.5);color:#fff;padding:5px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-size:12.5px}
+  #clipWatchBar button:hover{background:rgba(255,255,255,.35)}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="logo">🏰</span>部落冲突阵型数据库 <span id="connBadge" class="conn wait">● 连接中…</span></h1>
+  <div class="toolbar">
+    <button class="btn ghost small" onclick="switchMain('mine')">📥 导入阵型</button>
+    <button class="btn ghost small" onclick="switchMain('mine');openCrawler()">🔗 贴链接生成阵型图</button>
+    <button class="btn primary small" onclick="switchMain('mine');openAdd()">＋ 添加阵型</button>
+  </div>
+</header>
+
+<div class="mainTabs">
+  <div class="mainTab active" data-pane="lib" onclick="switchMain('lib')">📚 阵型库</div>
+  <div class="mainTab" data-pane="mine" onclick="switchMain('mine')">⭐ 我的阵型 <span id="mineCount" style="opacity:.6;font-size:12px"></span></div>
+</div>
+
+<!-- ================= 阵型库 ================= -->
+<div class="pane active" id="pane-lib">
+  <div class="filterbar">
+    <div class="segRow">
+      <div class="seg">
+        <button class="on" data-mode="home" onclick="setMode('home')">🏠 主城</button>
+        <button data-mode="bh" onclick="setMode('bh')">🌙 夜世界</button>
+      </div>
+    </div>
+
+    <div class="flabel">大本营等级</div>
+    <div class="chips" id="thChips"></div>
+
+    <div class="flabel">阵型类型</div>
+    <div class="chips" id="typeChips"></div>
+
+    <div class="segRow" style="margin-top:6px">
+      <input type="text" id="libSearch" placeholder="🔍 搜索阵型标题…" oninput="renderLib(true)"
+        style="flex:1;min-width:160px;background:var(--panel);border:1px solid var(--line);color:var(--txt);padding:9px 13px;border-radius:9px;font-size:14px;outline:none">
+    </div>
+  </div>
+
+  <div class="stats" id="libStats"></div>
+  <div class="grid" id="libGrid"></div>
+  <div class="loadmore" id="libLoadMore" style="display:none">
+    <button class="btn primary" onclick="loadMoreLib()" id="loadMoreBtn">加载更多</button>
+  </div>
+</div>
+
+<!-- ================= 我的阵型 ================= -->
+<div class="pane" id="pane-mine">
+  <div class="filterbar">
+    <div class="segRow">
+      <input type="text" id="mineSearch" placeholder="🔍 搜索我的阵型名/标签/备注…" oninput="renderMine()"
+        style="flex:1;min-width:160px;background:var(--panel);border:1px solid var(--line);color:var(--txt);padding:9px 13px;border-radius:9px;font-size:14px;outline:none">
+      <button class="btn ghost small" onclick="openExportDialog()" title="导出阵型+点赞数据，带共享码">⬇ 导出共享包</button>
+      <button class="btn ghost small" onclick="openImportDialog()" title="需要对方共享码才能导入">⬆ 导入共享包</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importSharePack(event)">
+    </div>
+  </div>
+  <div class="stats" id="mineStats"></div>
+  <div class="grid" id="mineGrid"></div>
+</div>
+
+<!-- ============ 添加/编辑弹窗 ============ -->
+<div class="overlay" id="addOverlay">
+  <div class="modal">
+    <h2>➕ <span id="addTitle">添加到我的阵型</span></h2>
+    <div class="hint">上传图片或粘贴图片直链，自动生成阵型卡片。</div>
+    <div class="prevbox" id="addPrev">图片预览</div>
+    <div class="tabs">
+      <div class="tabbtn active" data-tab="addImg" onclick="switchTab('addImg',this)">本地图片</div>
+      <div class="tabbtn" data-tab="addUrl" onclick="switchTab('addUrl',this)">图片直链</div>
+    </div>
+    <div class="tabpane active" id="pane-addImg">
+      <div class="field"><input type="file" id="addFile" accept="image/*" onchange="onAddFile(event)"></div>
+    </div>
+    <div class="tabpane" id="pane-addUrl">
+      <div class="field"><input type="text" id="addImgUrl" placeholder="https://…/base.png" oninput="onAddUrl(this.value)"></div>
+    </div>
+    <div class="field"><label>阵型名称</label><input type="text" id="fName" placeholder="如：19本 环形对称阵"></div>
+    <div class="row2">
+      <div class="field"><label>大本营等级</label>
+        <select id="addTH"><option value="">未指定</option><option>19本</option><option>18本</option><option>17本</option><option>16本</option><option>15本</option><option>14本</option><option>13本</option><option>12本</option><option>11本</option><option>10本</option></select>
+      </div>
+      <div class="field"><label>类型</label>
+        <select id="fType2"><option>部落战争</option><option>防御奖杯</option><option>农场</option><option>趣味</option><option>其他</option></select>
+      </div>
+    </div>
+    <div class="field"><label>阵型链接（一键导入）</label><input type="text" id="fLink" placeholder="https://link.clashofclans.com/…"></div>
+    <div class="field"><label>标签（逗号分隔）</label><input type="text" id="fTags" placeholder="防空外置, 引导阵, 防三星"></div>
+    <div class="field"><label>备注</label><textarea id="fNote" placeholder="打法思路、弱点…"></textarea></div>
+    <div class="foot">
+      <button class="btn ghost" onclick="closeAdd()">取消</button>
+      <button class="btn primary" onclick="saveBase()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 链接生成器 ============ -->
+<div class="overlay" id="crawlerOverlay">
+  <div class="modal wide">
+    <h2>🔗 贴链接自动生成阵型图</h2>
+    <div class="hint">图片直链自动抓成图；网页链接自动抓分享图(og:image)；也可打开页面后手动框选截图。</div>
+    <div class="field"><label>粘贴链接</label><input type="text" id="crawlUrl" placeholder="https://… 图片直链 / 阵型分享页 / 任意网页"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+      <button class="btn blue" onclick="crawlAuto()">⚡ 自动抓取图片</button>
+      <button class="btn ghost" onclick="openPageForShot()">🖼 打开页面框选截图</button>
+      <button class="btn ghost" onclick="loadDirectImage()">📥 直接当图片加载</button>
+    </div>
+    <div class="prevbox" id="crawlPrev">预览区</div>
+    <div id="cropArea" style="display:none">
+      <div class="hint" style="color:#f5b731">在图片上按住鼠标拖拽框出阵型区域 → 点"裁剪并保存"。</div>
+      <div class="cropwrap" id="cropWrap">
+        <img id="cropImg" crossorigin="anonymous" alt="待裁剪">
+        <div class="croprect" id="cropRect"></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px">
+        <button class="btn primary" onclick="doCrop()">✂ 裁剪并保存</button>
+        <button class="btn ghost" onclick="resetCrop()">重置选区</button>
+      </div>
+    </div>
+    <div style="margin-top:16px;border-top:1px dashed var(--line);padding-top:14px">
+      <div class="row2">
+        <div class="field"><label>阵型名称</label><input type="text" id="crawlName" placeholder="给这张阵型起个名字"></div>
+        <div class="field"><label>大本营等级</label>
+          <select id="crawlTH"><option value="">未指定</option><option selected>19本</option><option>18本</option><option>17本</option><option>16本</option><option>15本</option><option>14本</option><option>13本</option><option>12本</option></select>
+        </div>
+      </div>
+      <div class="foot">
+        <button class="btn ghost" onclick="closeCrawler()">关闭</button>
+        <button class="btn primary" id="crawlSaveBtn" onclick="saveCrawled()" disabled>保存入库</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 防守效果反馈弹窗 ============ -->
+<div class="overlay" id="fbOverlay">
+  <div class="modal">
+    <h2>💬 上传防守效果</h2>
+    <div class="hint" id="fbSub">分享这个阵型的实战防守效果，帮别人判断好不好用。</div>
+
+    <div class="field"><label>防守结果</label>
+      <div class="fbres" id="fbResult">
+        <button type="button" data-r="held" onclick="pickResult('held',this)">🛡️ 守住了（防住三星）</button>
+        <button type="button" data-r="partial" onclick="pickResult('partial',this)">⚔️ 部分被破（被两星）</button>
+        <button type="button" data-r="broken" onclick="pickResult('broken',this)">💥 被平推（被三星）</button>
+      </div>
+    </div>
+
+    <div class="field"><label>对手主攻打法 / 流派（可多选，用于统计克制）</label>
+      <div class="streams" id="fbStreams"></div>
+    </div>
+
+    <div class="field"><label>补充说明（可选）</label>
+      <textarea id="fbText" placeholder="如：对面雷龙绕圈半天没打进来，防空外置很关键…"></textarea>
+    </div>
+
+    <div class="field" id="fbRecList"></div>
+
+    <div class="foot">
+      <button class="btn ghost" onclick="closeFeedback()">取消</button>
+      <button class="btn primary" onclick="submitFeedback()">提交反馈</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 导入菜单 ============ -->
+<div class="overlay" id="importMenuOverlay">
+  <div class="modal">
+    <h2>📥 导入阵型</h2>
+    <div class="hint">选一种方式把阵型加进「我的阵型」。</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn primary" style="justify-content:flex-start;padding:14px 16px" onclick="importChoose('paste')">
+        📋 粘贴收集（推荐，双击打开也能用）<br><span style="font-size:12px;font-weight:400;opacity:.8">复制链接后在框里 Ctrl+V，可连续粘贴</span>
+      </button>
+      <button class="btn ghost" style="justify-content:flex-start;padding:14px 16px" onclick="importChoose('bulk')">
+        📥 批量导入（一次粘一大段）<br><span style="font-size:12px;font-weight:400;opacity:.7">把聊天里复制的整段链接文本贴进去，自动识别</span>
+      </button>
+      <button class="btn ghost" style="justify-content:flex-start;padding:14px 16px" onclick="importChoose('clip')">
+        📋 监听剪贴板（需用 start.bat 的 localhost）<br><span style="font-size:12px;font-weight:400;opacity:.7">开着后复制链接自动收集</span>
+      </button>
+    </div>
+    <div class="foot"><button class="btn ghost" onclick="closeImportMenu()">取消</button></div>
+  </div>
+</div>
+
+<!-- ============ 粘贴收集弹窗（file:// 无需权限） ============ -->
+<div class="overlay" id="pasteOverlay">
+  <div class="modal">
+    <h2>📋 粘贴收集阵型链接</h2>
+    <div class="hint">在这里按 <b>Ctrl+V</b> 粘贴你从微信复制的链接，自动识别导入。可以<b>连续粘贴多次</b>，每次一条或一段都行，非阵型链接自动忽略。</div>
+    <div class="field">
+      <textarea id="pasteBox" rows="3" placeholder="点这里 → 按 Ctrl+V 粘贴阵型链接（https://link.clashofclans.com/...）" style="font-size:13px"></textarea>
+    </div>
+    <div id="pasteLog" style="font-size:12.5px;color:#8fa0bf;max-height:200px;overflow:auto;margin-bottom:6px"></div>
+    <div class="foot">
+      <button class="btn ghost" onclick="closePasteCollect()">完成</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 批量导入链接弹窗 ============ -->
+<div class="overlay" id="bulkOverlay">
+  <div class="modal wide">
+    <h2>📥 批量导入阵型链接</h2>
+    <div class="hint">把从微信里复制的阵型链接（可多条、可夹带聊天文字）粘进来，自动识别 <b>clashofclans</b> 链接，建成「待补图」卡片，之后逐张上传截图补全。</div>
+
+    <div class="field"><label>粘贴链接 / 聊天文本</label>
+      <textarea id="bulkText" rows="6" oninput="previewBulk()" placeholder="https://link.clashofclans.com/cn?action=OpenLayout&id=TH16%3AHV%3A...&#10;（可一次粘多条，自动去重）"></textarea>
+    </div>
+
+    <div class="field"><label>识别预览</label>
+      <div id="bulkPreview" style="background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px;max-height:180px;overflow:auto"><span style="color:#5f7096;font-size:12px">粘贴后这里会显示识别到的链接</span></div>
+    </div>
+
+    <div class="hint" style="color:#4a9eff">💡 也可以点「📋 监听剪贴板收集链接」后，去微信里一条条复制，自动收集，不用粘。</div>
+
+    <div class="foot">
+      <button class="btn ghost" onclick="closeBulkImport()">取消</button>
+      <button class="btn primary" onclick="doBulkImport()">📥 导入为待补图卡片</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 导出共享包对话框 ============ -->
+<div class="overlay" id="exportDialog">
+  <div class="modal">
+    <h2>⬇ 导出共享包</h2>
+    <div class="hint">把「我的阵型」+ 点赞/评论数据打包成文件。发给谁就把<b>共享码</b>单独告诉他——对方导入时必须输入这个码才能用，等于只分享给你指定的人。</div>
+    <div class="field"><label>你的名字（可选，方便对方知道是谁）</label><input type="text" id="ownerName" placeholder="如：阿明"></div>
+    <div class="field"><label>本次共享码</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="myShareKey" style="font-family:monospace;font-weight:700;letter-spacing:2px;color:var(--acc);font-size:16px">
+        <button class="btn ghost small" onclick="copyMyKey()">复制</button>
+        <button class="btn ghost small" onclick="genNewKey()">换一个</button>
+      </div>
+      <div style="font-size:12px;color:var(--sub);margin-top:6px">💡 这个码就是"钥匙"，发给指定的人，别人只有文件没码也导不进去。</div>
+    </div>
+    <div class="stats" style="padding:0;margin:10px 0">将导出 <b id="exportStatCount">0</b> 个阵型 + 点赞/评论数据</div>
+    <div class="foot">
+      <button class="btn ghost" onclick="closeExportDialog()">取消</button>
+      <button class="btn primary" onclick="exportSharePack()">📤 导出文件 + 记下共享码</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 导入共享包对话框 ============ -->
+<div class="overlay" id="importDialog">
+  <div class="modal">
+    <h2>⬆ 导入共享包</h2>
+    <div class="hint">先输入对方给你的<b>共享码</b>，再选文件。码不对无法导入（保护你只导入指定人分享的包）。</div>
+    <div class="field"><label>对方共享码（必填）</label><input type="text" id="importKey" placeholder="输入对方告诉你的共享码，如 A1B2-C3D4" style="font-family:monospace;letter-spacing:1px"></div>
+    <div class="field"><label>共享包文件</label>
+      <input type="file" id="shareFile" accept=".json" onchange="importSharePack(event)">
+    </div>
+    <div class="hint" style="color:#f5b731">导入会<b>合并</b>进你的数据（阵型按链接去重，点赞评论合并，不覆盖你自己的）。</div>
+    <div class="foot">
+      <button class="btn ghost" onclick="closeImportDialog()">取消</button>
+      <button class="btn primary" onclick="document.getElementById('shareFile').click()">📥 选文件并导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 图片灯箱 -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">  <span class="cl">×</span>  <img id="lightboxImg" alt="">
+  <div class="cap" id="lightboxCap"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script>
+/* ================= 数据 ================= */
+const COC = window.COC_DATA || {home:{},bh:{}};
+const MINE_KEY = 'coc_bases_v1';
+let mine = [];
+function loadMine(){ try{ mine=JSON.parse(localStorage.getItem(MINE_KEY)||'[]'); }catch(e){ mine=[]; } }
+function saveMine(){ localStorage.setItem(MINE_KEY, JSON.stringify(mine)); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+/* ================= 链接去重（全局） ================= */
+// 归一化链接用于判重：去首尾空白、去尾部斜杠、忽略大小写
+function normalizeLink(link){
+  return String(link||'').trim().replace(/\/+$/,'').toLowerCase();
+}
+// 查找是否已有相同链接的阵型，返回已存在项或 null
+function findDupByLink(link, exceptId){
+  const nk = normalizeLink(link);
+  if(!nk) return null;
+  return mine.find(m => m.id!==exceptId && normalizeLink(m.link)===nk) || null;
+}
+// 全局去重：按链接只保留一条（优先保留有图的、再保留最早的）
+function dedupeMine(silent){
+  const kept = {};        // normalizeLink -> 保留的item
+  const result = [];
+  let removed = 0;
+  // 先排序：有图的优先，其次时间早的优先
+  const sorted = mine.slice().sort((a,b)=>{
+    const ai=a.img?0:1, bi=b.img?0:1;
+    if(ai!==bi) return ai-bi;
+    return (a.ts||0)-(b.ts||0);
+  });
+  sorted.forEach(it=>{
+    const nk = normalizeLink(it.link);
+    if(!nk){ result.push(it); return; }   // 无链接的不参与去重
+    if(kept[nk]){
+      removed++;
+      // 把被合并项的有用信息补到保留项上（如保留项没图但这条有图已由排序保证，这里补备注/标签）
+      const k = kept[nk];
+      if(!k.img && it.img) k.img = it.img, k.pending = false;
+      // 合并标签
+      if(it.tags && it.tags.length){
+        k.tags = Array.from(new Set([...(k.tags||[]), ...it.tags]));
+      }
+    } else {
+      kept[nk] = it; result.push(it);
+    }
+  });
+  // 保持原来的相对顺序（按 ts 倒序显示时再排，这里保留 result）
+  mine = result;
+  saveMine(); renderMine();
+  if(!silent) toast(removed?`🧹 去重完成：移除 ${removed} 个重复链接，现共 ${mine.length} 个`:`没有发现重复链接（共 ${mine.length} 个）`, removed?'ok':undefined);
+  return removed;
+}
+function esc(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function escAttr(s){ return (s||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
+
+/* ================= 存储层：本地优先 + 可选后端 + 共享包 ================= */
+// 三种数据来源，优先级：本地(含导入的共享包) 始终有效；若检测到后端则后端同步。
+const API_BASE = (function(){
+  const q = new URLSearchParams(location.search).get('api');
+  if(q) return q.replace(/\/$/,'');
+  if(location.protocol==='http:'||location.protocol==='https:') return location.origin;
+  return 'http://localhost:8899';
+})();
+const CLIENT_KEY='coc_client_id';
+let CLIENT_ID = localStorage.getItem(CLIENT_KEY);
+if(!CLIENT_ID){ CLIENT_ID='c_'+Date.now().toString(36)+Math.random().toString(36).slice(2,9); localStorage.setItem(CLIENT_KEY,CLIENT_ID); }
+
+const MYVOTES_KEY='coc_my_votes';
+function loadMyVotes(){ try{return JSON.parse(localStorage.getItem(MYVOTES_KEY)||'{}');}catch(e){return {};} }
+function saveMyVotes(v){ localStorage.setItem(MYVOTES_KEY, JSON.stringify(v)); }
+let myVotes = loadMyVotes();
+
+// 本地统计库（核心）：{baseKey:{up,down,shares,counters:{stream:cnt},feedback:[], owner}}
+const STATS_KEY='coc_stats_local';
+function loadLocalStats(){ try{return JSON.parse(localStorage.getItem(STATS_KEY)||'{}');}catch(e){return {};} }
+function saveLocalStats(){ localStorage.setItem(STATS_KEY, JSON.stringify(STATS)); }
+let STATS = loadLocalStats();
+
+// 共享源信息：当前载入的共享包 key / 主人
+const SHAREINFO_KEY='coc_share_info';
+function loadShareInfo(){ try{return JSON.parse(localStorage.getItem(SHAREINFO_KEY)||'null');}catch(e){return null;} }
+function saveShareInfo(v){ if(v) localStorage.setItem(SHAREINFO_KEY, JSON.stringify(v)); else localStorage.removeItem(SHAREINFO_KEY); }
+let shareInfo = loadShareInfo();
+
+let apiOnline = null; // 后端是否可用（可选增强）
+
+function baseKeyOf(it){ return (lib.mode==='bh'?'bh':'th') + lib.th + '-' + it.id; }
+
+function getStats(key){
+  if(!STATS[key]) STATS[key] = {up:0,down:0,shares:0,counters:{},feedback:[]};
+  const s = STATS[key];
+  if(!s.counters) s.counters = {};
+  if(!s.feedback) s.feedback = [];
+  return s;
+}
+// counters 转数组（渲染用）
+function countersArr(s){
+  const c = s.counters || {};
+  return Object.keys(c).map(k=>({stream:k,cnt:c[k]})).sort((a,b)=>b.cnt-a.cnt);
+}
+
+/* ---- 可选后端：仅探测，不强制 ---- */
+async function api(path, opts){
+  const res = await fetch(API_BASE + path, Object.assign({ headers:{'Content-Type':'application/json'} }, opts||{}));
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  return res.json();
+}
+// 云端公共阵型（服务端 customs 表）
+let CLOUD_CUSTOMS = [];
+async function probeServer(){
+  try{
+    const r = await api('/api/all', {method:'GET'});
+    if(r && r.ok){ apiOnline=true; }
+    // 拉云端阵型
+    try{ const c = await api('/api/customs',{method:'GET'}); if(c && c.ok){ CLOUD_CUSTOMS = c.items || []; mergeCloudStats(); } }catch(e){}
+  }catch(e){ apiOnline=false; }
+  updateConnBadge();
+  if(typeof renderMine==='function') renderMine();
+}
+// 云端 + 本地合并展示：把云端阵型并进 mine 视图（标记 fromCloud，不重复）
+function cloudAsLocal(){
+  return CLOUD_CUSTOMS.map(c=>({
+    id:'cloud_'+c.id, name:c.name, th:c.th, type:c.type, link:c.link,
+    tags:c.tags||[], note:c.note, img:c.img, pending:!!c.pending, ts:c.ts, fromCloud:true, cloudId:c.id
+  }));
+}
+// 把云端阵型的统计并进 STATS（用 baseKey = custom-<id>）
+function mergeCloudStats(){
+  // 无额外动作：统计仍走 /api/all（若服务端按 custom-key 记录）
+}
+/* 上传「我的阵型」到云端（别人公网可见） */
+async function uploadMineToCloud(){
+  if(!apiOnline){ toast('未连接服务器，无法上传。请用公网部署的网址打开','err'); return; }
+  const localOnly = mine.filter(m=>!m.fromCloud);
+  if(!localOnly.length){ toast('「我的阵型」里没有可上传的阵型','err'); return; }
+  const owner = localStorage.getItem('coc_owner_name') || '';
+  const items = localOnly.map(m=>({
+    id:m.id, name:m.name, th:m.th, type:m.type, link:m.link, tags:m.tags||[],
+    note:m.note, img:m.img||'', pending:!!m.pending, ts:m.ts, owner
+  }));
+  try{
+    const r = await api('/api/customs',{method:'POST',body:JSON.stringify({items})});
+    if(r && r.ok){
+      toast(`✅ 已上传 ${r.added} 个阵型到云端${r.skip?`（${r.skip} 个已存在跳过）`:''}，别人现在能看到了`,'ok');
+      await probeServer(); // 刷新云端列表
+    } else toast('上传失败','err');
+  }catch(e){ toast('上传失败：'+e.message,'err'); }
+}
+/* 有后端时把本地操作也推给后端（合并共享），无后端就纯本地 */
+async function syncVote(key,dir){
+  try{ await api('/api/vote',{method:'POST',body:JSON.stringify({key,dir,clientId:CLIENT_ID})}); }catch(e){}
+}
+async function syncFeedback(key,text,result,streams){
+  try{
+    await api('/api/feedback',{method:'POST',body:JSON.stringify({key,text,defenseResult:result,stream:streams.join(','),clientId:CLIENT_ID})});
+    for(const st of streams){ await api('/api/counter',{method:'POST',body:JSON.stringify({key,stream:st,clientId:CLIENT_ID})}); }
+  }catch(e){}
+}
+async function syncShare(key){
+  try{ await api('/api/share',{method:'POST',body:JSON.stringify({key})}); }catch(e){}
+}
+
+/* ================= 投票（本地 + 可选同步） ================= */
+async function vote(key, dir, btn){
+  const prev = myVotes[key];
+  const s = getStats(key);
+  // 本地乐观更新
+  if(prev === dir){ // 取消
+    if(dir==='up') s.up=Math.max(0,s.up-1); else s.down=Math.max(0,s.down-1);
+    delete myVotes[key];
+  } else {
+    if(prev==='up') s.up=Math.max(0,s.up-1);
+    if(prev==='down') s.down=Math.max(0,s.down-1);
+    if(dir==='up') s.up++; else s.down++;
+    myVotes[key]=dir;
+  }
+  saveMyVotes(myVotes); saveLocalStats(); refreshVoteUI(key);
+  if(apiOnline){
+    // 后端在线：以服务端返回的全局统计为准（多人共享）
+    try{
+      const r = await api('/api/vote',{method:'POST',body:JSON.stringify({key,dir,clientId:CLIENT_ID})});
+      if(r && r.ok && r.stats){ applyServerStats(key, r.stats); refreshVoteUI(key); }
+    }catch(e){}
+  }
+}
+// 把服务端返回的 stats 写进本地 STATS
+function applyServerStats(key, ss){
+  const s = getStats(key);
+  s.up = ss.up||0; s.down = ss.down||0; s.shares = ss.shares||0;
+  if(Array.isArray(ss.counters)){ s.counters = {}; ss.counters.forEach(c=>{ s.counters[c.stream]=c.cnt; }); }
+  if(Array.isArray(ss.feedback)){ s.feedback = ss.feedback.map(f=>({text:f.text,result:f.defenseResult,streams:f.stream?String(f.stream).split(','):[],ts:f.ts})); }
+  saveLocalStats();
+}
+
+function refreshVoteUI(key){
+  const s = getStats(key);
+  document.querySelectorAll('[data-vote="'+key+'"]').forEach(box=>{
+    const up = box.querySelector('.up'), down = box.querySelector('.down');
+    if(up){ up.querySelector('.n').textContent = s.up; up.classList.toggle('on', myVotes[key]==='up'); }
+    if(down){ down.querySelector('.n').textContent = s.down; down.classList.toggle('on', myVotes[key]==='down'); }
+  });
+}
+
+/* 克制流派统计 */
+function addCounterLocal(key, stream){
+  const s = getStats(key);
+  s.counters[stream] = (s.counters[stream]||0) + 1;
+  saveLocalStats();
+}
+function refreshCounterUI(key){
+  document.querySelectorAll('[data-counter="'+key+'"]').forEach(box=>{
+    box.innerHTML = counterBarHTML(countersArr(getStats(key)));
+  });
+}
+function counterBarHTML(counters){
+  if(!counters || !counters.length) return `<span class="cnt-empty">暂无流派数据，点「反馈」上传</span>`;
+  const total = counters.reduce((a,c)=>a+c.cnt,0) || 1;
+  const top = counters.slice(0,5);
+  return top.map(c=>{
+    const pct = Math.round(c.cnt/total*100);
+    return `<div class="cbar" title="克制 ${esc(c.stream)} ×${c.cnt}">
+      <span class="cname">${esc(c.stream)}</span>
+      <span class="ctrack"><span class="cfill" style="width:${pct}%"></span></span>
+      <span class="cval">${c.cnt}</span>
+    </div>`;
+  }).join('');
+}
+
+/* 转发 */
+async function shareBase(key, title, link){
+  const text = `【部落冲突阵型】${title}\n${link}` + (shareInfo ? `\n共享码：${shareInfo.key}` : '');
+  if(navigator.share){
+    try{ await navigator.share({title:'部落冲突阵型', text}); }catch(e){}
+  } else {
+    fallbackCopy(text, ()=>toast('✅ 分享文案已复制','ok'));
+  }
+  const s = getStats(key); s.shares = (s.shares||0)+1; saveLocalStats();
+  document.querySelectorAll('[data-vote="'+key+'"] .sh').forEach(b=>{ /* update */ });
+  refreshVoteUI(key); refreshShareUI(key);
+  if(apiOnline) syncShare(key);
+}
+function refreshShareUI(key){
+  const s = getStats(key);
+  document.querySelectorAll('[data-vote="'+key+'"] .sh').forEach(b=>{ b.innerHTML = '↗ ' + (s.shares||0); });
+}
+
+function updateConnBadge(){
+  const el = document.getElementById('connBadge');
+  if(!el) return;
+  if(shareInfo){ el.className='conn shared'; el.textContent='● 共享模式'; el.title='正在查看共享数据包（共享码 '+shareInfo.key+'）'; return; }
+  if(apiOnline===true){ el.className='conn on'; el.textContent='● 已连接'; el.title='后端已连接，数据实时共享'; }
+  else { el.className='conn local'; el.textContent='● 本地模式'; el.title='数据存在本机浏览器；可导出共享包分享给别人'; }
+}
+
+/* ================= 主标签切换 ================= */
+function switchMain(p){
+  document.querySelectorAll('.mainTab').forEach(t=>t.classList.toggle('active', t.dataset.pane===p));
+  document.getElementById('pane-lib').classList.toggle('active', p==='lib');
+  document.getElementById('pane-mine').classList.toggle('active', p==='mine');
+  if(p==='mine') renderMine();
+}
+
+/* ================= 阵型库 ================= */
+const TYPE_NAMES = {war:'部落战争', defence:'防御奖杯', farm:'农场', troll:'趣味', all:'全部'};
+const lib = {
+  mode:'home', th:null, type:'all', page:1, pageSize:48, filtered:[],
+};
+
+function libSrc(){ return lib.mode==='bh'?COC.bh:COC.home; }
+
+function setMode(mode){
+  lib.mode = mode; lib.type='all'; lib.page=1;
+  document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('on', b.dataset.mode===mode));
+  buildTHChips();
+  // 自动选第一个可用等级
+  const levels = Object.keys(libSrc()).map(Number).sort((a,b)=>a-b);
+  lib.th = levels.includes(lib.th)?lib.th:(levels.includes(19)?19:levels[0]);
+  buildTHChips();
+  buildTypeChips();
+  renderLib(true);
+}
+
+function buildTHChips(){
+  const src = libSrc();
+  const levels = Object.keys(src).map(Number).sort((a,b)=>a-b);
+  const box = document.getElementById('thChips');
+  box.innerHTML = levels.map(lv=>{
+    const c = src[lv].count;
+    return `<button class="chip ${lv===lib.th?'on':''}" onclick="setTH(${lv})">${lv}本<span class="cnt">${c}</span></button>`;
+  }).join('');
+}
+function setTH(lv){ lib.th=lv; lib.page=1; buildTHChips(); buildTypeChips(); renderLib(true); }
+
+function buildTypeChips(){
+  const src = libSrc();
+  const thData = src[lib.th];
+  if(!thData) return;
+  // 统计各类型数量
+  const counts = {all:thData.items.length};
+  thData.items.forEach(it=>{ counts[it.type]=(counts[it.type]||0)+1; });
+  const order = ['all','war','defence','farm','troll'];
+  const box = document.getElementById('typeChips');
+  box.innerHTML = order.filter(t=>counts[t]).map(t=>{
+    const name = t==='all'?'全部':(TYPE_NAMES[t]||t);
+    return `<button class="chip ${t===lib.type?'on':''}" onclick="setType('${t}')">${name}<span class="cnt">${counts[t]}</span></button>`;
+  }).join('');
+}
+function setType(t){ lib.type=t; lib.page=1; buildTypeChips(); renderLib(true); }
+
+function computeFiltered(){
+  const thData = libSrc()[lib.th];
+  if(!thData){ lib.filtered=[]; return; }
+  let items = thData.items;
+  if(lib.type!=='all') items = items.filter(i=>i.type===lib.type);
+  const q = document.getElementById('libSearch').value.trim().toLowerCase();
+  if(q) items = items.filter(i=>(i.title||'').toLowerCase().includes(q));
+  lib.filtered = items;
+}
+
+function renderSkeleton(){
+  document.getElementById('libGrid').innerHTML = Array(8).fill('<div class="sk"></div>').join('');
+}
+
+function renderLib(reset){
+  if(reset){ lib.page=1; renderSkeleton(); setTimeout(()=>renderLib(false), 60); return; }
+  computeFiltered();
+  const total = lib.filtered.length;
+  const end = Math.min(lib.page*lib.pageSize, total);
+  const shown = lib.filtered.slice(0, end);
+
+  document.getElementById('libStats').innerHTML =
+    `共 <b>${total}</b> 个阵型${lib.type!=='all'?'（已筛选）':''} · 已显示 ${end}/${total}`;
+
+  const grid = document.getElementById('libGrid');
+  if(!total){
+    grid.innerHTML = `<div class="empty"><div class="big">🔍</div><h3>该条件下暂无阵型</h3><p>换个大本等级或类型看看</p></div>`;
+    document.getElementById('libLoadMore').style.display='none';
+    return;
+  }
+  grid.innerHTML = shown.map(it=>libCard(it)).join('');
+
+  const lm = document.getElementById('libLoadMore');
+  if(end < total){
+    lm.style.display='flex';
+    document.getElementById('loadMoreBtn').textContent = `加载更多（还剩 ${total-end} 个）`;
+  } else lm.style.display='none';
+}
+
+function loadMoreLib(){ lib.page++; renderLib(false); }
+
+function libCard(it){
+  const isFav = mine.some(m=>m.link && it.link && m.link===it.link);
+  const key = baseKeyOf(it);
+  const s = getStats(key);
+  const mv = myVotes[key];
+  const title = escAttr(it.title), link = escAttr(it.link);
+  return `<div class="card">
+    <div class="thumb" onclick="openLightbox('${escAttr(it.img)}','${escAttr(it.title)}')">
+      <img src="${escAttr(it.img)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='grid')">
+      <div class="ph" style="display:none">🏰</div>
+      <span class="badge">${lib.th}本</span>
+    </div>
+    <button class="fav ${isFav?'on':''}" title="${isFav?'已收藏':'收藏到我的阵型'}" onclick="event.stopPropagation();toggleFav(this,'${link}','${title}','${lib.th}','${escAttr(it.typeName||'')}','${escAttr(it.img)}')">${isFav?'★':'☆'}</button>
+    <div class="body">
+      <div class="typ">${esc(it.typeName||TYPE_NAMES[it.type]||'')}</div>
+      <h3>${esc(it.title)}</h3>
+
+      <div class="votebar" data-vote="${key}">
+        <button class="vbtn up ${mv==='up'?'on':''}" onclick="event.stopPropagation();vote('${key}','up',this)" title="点赞">
+          👍 <span class="n">${s.up}</span>
+        </button>
+        <button class="vbtn down ${mv==='down'?'on':''}" onclick="event.stopPropagation();vote('${key}','down',this)" title="踩">
+          👎 <span class="n">${s.down}</span>
+        </button>
+        <button class="vbtn fb" onclick="event.stopPropagation();openFeedback('${key}','${title}')" title="上传防守效果">
+          💬 反馈
+        </button>
+        <button class="vbtn sh" onclick="event.stopPropagation();shareBase('${key}','${title}','${link}')" title="转发">↗ ${s.shares||0}</button>
+      </div>
+
+      <div class="counter" data-counter="${key}">${counterBarHTML(countersArr(s))}</div>
+
+      <button class="btn blue copybtn" onclick="event.stopPropagation();copyLink(this,'${link}')">📋 复制导入链接</button>
+    </div>
+  </div>`;
+}
+
+/* ================= 防守效果反馈 ================= */
+const STREAMS = ['雷龙','飞龙','超级飞龙','气球','矿工','野猪','超级野猪','女武神','龙骑','根蔓骑士','雪怪','皮卡','超级皮卡','天使治疗','冰冻法术流','雷电爆本','狂暴冲车','攻城机器','机械','蝙蝠法术','其它'];
+let fbState = { key:null, title:'', result:null, streams:[] };
+
+function openFeedback(key, title){
+  fbState = { key, title, result:null, streams:[] };
+  document.getElementById('fbSub').textContent = '为「' + (title||'该阵型') + '」上传实战防守效果，帮别人判断好不好用。';
+  document.getElementById('fbText').value='';
+  document.querySelectorAll('#fbResult button').forEach(b=>b.classList.remove('on'));
+  // 流派多选按钮
+  document.getElementById('fbStreams').innerHTML = STREAMS.map(s=>
+    `<button type="button" class="streamchip" data-s="${esc(s)}" onclick="toggleStream(this)">${esc(s)}</button>`).join('');
+  // 已有统计
+  const s = getStats(key);
+  const rec = document.getElementById('fbRecList');
+  const ca = countersArr(s);
+  if(ca.length){
+    rec.innerHTML = `<label>当前克制流派统计</label><div>${counterBarHTML(ca)}</div>`;
+  } else rec.innerHTML='';
+  document.getElementById('fbOverlay').classList.add('show');
+}
+function closeFeedback(){ document.getElementById('fbOverlay').classList.remove('show'); }
+function pickResult(r, btn){
+  fbState.result = r;
+  document.querySelectorAll('#fbResult button').forEach(b=>b.classList.toggle('on', b.dataset.r===r));
+}
+function toggleStream(btn){
+  const s = btn.dataset.s;
+  const i = fbState.streams.indexOf(s);
+  if(i>=0){ fbState.streams.splice(i,1); btn.classList.remove('on'); }
+  else { fbState.streams.push(s); btn.classList.add('on'); }
+}
+function submitFeedback(){
+  if(!fbState.result && fbState.streams.length===0 && !document.getElementById('fbText').value.trim()){
+    toast('至少选择防守结果或对手流派','err'); return;
+  }
+  const key = fbState.key;
+  const text = document.getElementById('fbText').value.trim();
+  const s = getStats(key);
+  // 本地写入
+  s.feedback.unshift({ text, result:fbState.result||'', streams:fbState.streams.slice(), ts:Date.now(), mine:true });
+  if(s.feedback.length>200) s.feedback.length=200;
+  fbState.streams.forEach(st=>{ s.counters[st]=(s.counters[st]||0)+1; });
+  saveLocalStats();
+  refreshCounterUI(key);
+  closeFeedback();
+  toast('✅ 反馈已提交，感谢分享防守效果！','ok');
+  if(apiOnline) syncFeedback(key,text,fbState.result||'',fbState.streams);
+}
+
+/* ================= 共享包（无需服务器，靠 key + 文件） ================= */
+const MYKEY_STORE='coc_my_share_key';
+function genKeyString(){
+  const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let s=''; for(let i=0;i<8;i++){ s+=A[Math.floor(Math.random()*A.length)]; if(i===3) s+='-'; }
+  return s;
+}
+function getMyKey(){
+  let k = localStorage.getItem(MYKEY_STORE);
+  if(!k){ k = genKeyString(); localStorage.setItem(MYKEY_STORE, k); }
+  return k;
+}
+function genNewKey(){
+  localStorage.setItem(MYKEY_STORE, genKeyString());
+  document.getElementById('myShareKey').value = getMyKey();
+  toast('已换新共享码','ok');
+}
+function copyMyKey(){
+  fallbackCopy(document.getElementById('myShareKey').value || getMyKey(), ()=>toast('✅ 共享码已复制','ok'));
+}
+
+/* 导出对话框 */
+function openExportDialog(){
+  document.getElementById('ownerName').value = localStorage.getItem('coc_owner_name')||'';
+  document.getElementById('myShareKey').value = getMyKey();
+  document.getElementById('exportStatCount').textContent = mine.filter(m=>!m.fromCloud).length;
+  document.getElementById('exportDialog').classList.add('show');
+}
+function closeExportDialog(){ document.getElementById('exportDialog').classList.remove('show'); }
+
+/* 导入对话框 */
+function openImportDialog(){
+  document.getElementById('importKey').value='';
+  document.getElementById('importDialog').classList.add('show');
+}
+function closeImportDialog(){ document.getElementById('importDialog').classList.remove('show'); }
+
+// 导出共享包：{app, type, key, owner, exportedAt, version, votes:{k:{up,down,shares,counters,feedback}}}
+function exportSharePack(){
+  const owner = document.getElementById('ownerName').value.trim();
+  localStorage.setItem('coc_owner_name', owner);
+  let key = (document.getElementById('myShareKey').value || '').trim().toUpperCase();
+  if(!key){ key = getMyKey(); }
+  localStorage.setItem(MYKEY_STORE, key);
+  const votes = {};
+  for(const k in STATS){
+    const s = STATS[k];
+    const hasContent = (s.up||0)+(s.down||0)+(s.shares||0) > 0 || (s.feedback&&s.feedback.length) || (s.counters&&Object.keys(s.counters).length);
+    if(hasContent) votes[k] = { up:s.up||0, down:s.down||0, shares:s.shares||0, counters:s.counters||{}, feedback:s.feedback||[] };
+  }
+  const bases = mine.filter(m=>!m.fromCloud).map(m=>({
+    id:m.id, name:m.name, th:m.th, type:m.type, link:m.link,
+    tags:m.tags||[], note:m.note, img:m.img||'', pending:!!m.pending, ts:m.ts
+  }));
+  const pack = {
+    app:'coc-base-db', type:'share-pack', version:2,
+    key, owner, exportedAt: Date.now(),
+    baseCount: bases.length,
+    bases,
+    votes
+  };
+  const blob = new Blob([JSON.stringify(pack,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const fn = '共享包-' + (owner||key) + '-' + new Date().toISOString().slice(0,10) + '.json';
+  a.download = fn; a.click();
+  closeExportDialog();
+  toast(`📤 已导出（${bases.length} 个阵型 + 点赞数据）。把文件和共享码「${key}」发给指定的人`,'ok');
+}
+
+// 导入并合并共享包（需校验共享码）
+function importSharePack(e){
+  const f = e.target.files[0]; if(!f) return;
+  const inputKey = (document.getElementById('importKey').value || '').trim().toUpperCase();
+  const r = new FileReader();
+  r.onload = ev => {
+    try{
+      const pack = JSON.parse(ev.target.result);
+      if(!pack || pack.type!=='share-pack') throw new Error('不是有效的共享包');
+      // 共享码校验：必须输入且与包里一致
+      const packKey = String(pack.key||'').trim().toUpperCase();
+      if(!inputKey){ e.target.value=''; toast('请先输入对方给你的共享码','err'); return; }
+      if(packKey && inputKey !== packKey){
+        e.target.value='';
+        toast('共享码不对，无法导入。请向对方确认正确的共享码','err');
+        return;
+      }
+      const importKey = inputKey;
+
+      // ===== 1) 导入阵型本身到「我的阵型」=====
+      let addedBases=0, skipBases=0;
+      if(Array.isArray(pack.bases)){
+        const existingLinks = new Set(mine.map(m=>normalizeLink(m.link)).filter(Boolean));
+        pack.bases.forEach(b=>{
+          if(!b || !b.name) return;
+          const nk = normalizeLink(b.link);
+          if(nk && existingLinks.has(nk)){ skipBases++; return; }
+          mine.push({
+            id: uid(), name:b.name, th:b.th||'', type:b.type||'', link:b.link||'',
+            tags:b.tags||[], note:b.note||'', img:b.img||'', pending:!!b.pending, ts:b.ts||Date.now()
+          });
+          if(nk) existingLinks.add(nk);
+          addedBases++;
+        });
+        if(addedBases) saveMine();
+      }
+
+      // ===== 2) 合并点赞/反馈统计 =====
+      let mergedKeys=0, addedFb=0;
+      if(pack.votes){
+        for(const k in pack.votes){
+          const src = pack.votes[k];
+          const dst = getStats(k);
+          dst.up = Math.max(dst.up||0, src.up||0);
+          dst.down = Math.max(dst.down||0, src.down||0);
+          dst.shares = Math.max(dst.shares||0, src.shares||0);
+          if(src.counters){ for(const st in src.counters){ dst.counters[st] = Math.max(dst.counters[st]||0, src.counters[st]); } }
+          if(Array.isArray(src.feedback)){
+            const exist = new Set((dst.feedback||[]).map(x=>x.ts+'|'+x.text));
+            src.feedback.forEach(fb=>{ const sig=fb.ts+'|'+fb.text; if(!exist.has(sig)){ dst.feedback.push(fb); addedFb++; exist.add(sig); } });
+          }
+          mergedKeys++;
+        }
+        saveLocalStats();
+      }
+
+      shareInfo = { key: importKey, owner: pack.owner||'', importedAt: Date.now() };
+      saveShareInfo(shareInfo);
+      renderLib(false);
+      if(typeof renderMine==='function') renderMine();
+      updateConnBadge();
+      closeImportDialog();
+      let msg = '✅ 已导入共享包：';
+      if(addedBases) msg += `新增 ${addedBases} 个阵型`+(skipBases?`（${skipBases} 个重复跳过）`:'')+'，';
+      else if(skipBases) msg += `阵型都已在库里，`;
+      if(mergedKeys) msg += `合并 ${mergedKeys} 个阵型的点赞反馈`+(addedFb?`（新增 ${addedFb} 条评论）`:'');
+      toast(msg.replace(/，$/,''),'ok');
+    }catch(err){ toast('导入失败：'+err.message,'err'); }
+  };
+  r.readAsText(f); e.target.value='';
+}
+
+/* 复制导入链接 */
+function copyLink(btn, link){  const txt = link.replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,'&');
+  const done = ()=>{ btn.classList.add('copied'); btn.textContent='✅ 已复制'; setTimeout(()=>{btn.classList.remove('copied');btn.textContent='📋 复制导入链接';},1600); };
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(txt).then(done).catch(()=>fallbackCopy(txt,done));
+  } else fallbackCopy(txt, done);
+}
+function fallbackCopy(txt, cb){
+  const ta=document.createElement('textarea'); ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); cb&&cb(); }catch(e){ toast('复制失败，请手动复制','err'); }
+  document.body.removeChild(ta);
+}
+
+/* 收藏/取消收藏到我的阵型 */
+function toggleFav(btn, link, title, th, typeName, img){
+  const nk = normalizeLink(link);
+  const i = mine.findIndex(m=>nk && normalizeLink(m.link)===nk);
+  if(i>=0){ mine.splice(i,1); btn.classList.remove('on'); btn.textContent='☆'; toast('已取消收藏'); }
+  else {
+    const dup = findDupByLink(link);
+    if(dup){ toast('⭐ 这个阵型已在「我的阵型」里了','err'); return; }
+    mine.push({id:uid(), name:title, th:th+'本', type:typeName||'', link:link, tags:[], note:'收藏自阵型库', img:img, ts:Date.now()});    btn.classList.add('on'); btn.textContent='★'; toast('⭐ 已收藏到「我的阵型」','ok');
+  }
+  saveMine(); updateMineCount();
+}
+
+function updateMineCount(){
+  const el=document.getElementById('mineCount');
+  if(el) el.textContent = mine.length? '('+mine.length+')':'';
+}
+
+/* ================= 灯箱 ================= */
+function openLightbox(img, title){
+  document.getElementById('lightboxImg').src = img;
+  document.getElementById('lightboxCap').textContent = title||'';
+  document.getElementById('lightbox').classList.add('show');
+}
+function closeLightbox(e){
+  if(e && e.target && e.target.id==='lightboxImg') return; // 点图片不关
+  document.getElementById('lightbox').classList.remove('show');
+}
+
+/* ================= 我的阵型 ================= */
+function renderMine(){
+  const q = document.getElementById('mineSearch').value.trim().toLowerCase();
+  // 本地 + 云端合并（云端去重：本地已有的同链接不重复显示）
+  const localLinks = new Set(mine.map(m=>normalizeLink(m.link)).filter(Boolean));
+  const cloudExtra = cloudAsLocal().filter(c=>{
+    const nk=normalizeLink(c.link);
+    return !(nk && localLinks.has(nk)) && !mine.some(m=>m.fromCloud && m.cloudId===c.cloudId);
+  });
+  let list = [...mine, ...cloudExtra].sort((a,b)=>b.ts-a.ts);
+  if(q) list = list.filter(b=>{
+    const hay=[b.name,b.note,(b.tags||[]).join(' '),b.link,b.th,b.type].join(' ').toLowerCase();
+    return hay.includes(q);
+  });
+  const pendCount = mine.filter(b=>b.pending && !b.img).length;
+  const cloudCount = CLOUD_CUSTOMS.length;
+  const localOnlyCount = mine.filter(m=>!m.fromCloud).length;
+  document.getElementById('mineStats').innerHTML =
+    `我的阵型 <b>${localOnlyCount}</b> 个` +
+    (cloudCount?` · <span style="color:#4a9eff">云公共 <b>${cloudCount}</b> 个</span>`:'') +
+    (pendCount?` · <span style="color:#f5b731">待补图 <b>${pendCount}</b> 个</span>`:'') +
+    (q?` · 匹配 <b>${list.length}</b> 个`:'') +
+    `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">` +
+    (selectMode
+      ? `<span style="font-size:13px;color:var(--acc);font-weight:700;padding:4px 6px">已选 <b id="selCount">${selected.size}</b> 个</span>` +
+        ` <button class="btn primary small" style="padding:4px 12px" onclick="batchDeleteSelected()">🗑️ 删除所选</button>` +
+        ` <button class="btn ghost small" style="padding:4px 12px" onclick="selectAllVisible()">全选</button>` +
+        ` <button class="btn ghost small" style="padding:4px 12px" onclick="exitSelectMode()">取消</button>`
+      : ` <button class="btn primary small" style="padding:4px 12px" onclick="uploadMineToCloud()">☁️ 上传到云端（让别人看/点赞）</button>` +
+        ` <button class="btn ghost small" style="padding:4px 12px" onclick="openImportMenu()">📥 导入阵型</button>` +
+        ` <button class="btn ghost small" style="padding:4px 12px" onclick="dedupeMine()">🧹 一键去重</button>` +
+        ` <button class="btn ghost small" style="padding:4px 12px" onclick="enterSelectMode()">✅ 选择删除</button>`
+    ) +
+    `</div>`;
+  updateMineCount();
+
+  const grid = document.getElementById('mineGrid');
+  if(!list.length){
+    grid.innerHTML = `<div class="empty"><div class="big">⭐</div><h3>${(mine.length||cloudCount)?'没有匹配':'还没有收藏/添加阵型'}</h3>
+      <p>${(mine.length||cloudCount)?'换个搜索词':'在「阵型库」点 ☆ 收藏，或用上方「粘贴收集 / 批量导入」添加，再点「☁️ 上传到云端」'}</p></div>`;
+    return;
+  }
+  grid.innerHTML = list.map(b=>{
+    const noImg = !b.img;
+    // 是否"已在云端"：云端来的 或 本地但已上传过（link 匹配云端）
+    let cloudId = b.cloudId || null;
+    if(!cloudId && b.link){
+      const nk = normalizeLink(b.link);
+      const hit = CLOUD_CUSTOMS.find(c=>normalizeLink(c.link)===nk);
+      if(hit) cloudId = hit.id;
+    }
+    const isCloud = !!cloudId;
+    const key = isCloud ? ('custom_'+cloudId) : ('custom_'+(b.id||''));
+    const st = getStats(key);
+    const mv = myVotes[key];
+    return `
+    <div class="card ${noImg?'pending':''} ${isCloud?'cloudcard':''} ${selectMode&&selected.has(b.id)?'selected':''}">
+      ${selectMode?`<input type="checkbox" class="selbox" ${selected.has(b.id)?'checked':''} onclick="event.stopPropagation();toggleSelect('${b.id}',this)">`:''}
+      <button class="fav on" title="${b.fromCloud?'云端阵型（点删除=从服务器移除）':'移除'}" onclick="event.stopPropagation();delMine('${b.id}')">${b.fromCloud?'☁':'×'}</button>
+      <div class="thumb" ${b.img?`onclick="event.stopPropagation();${selectMode?`toggleSelect('${b.id}')`:`openLightbox('${escAttr(b.img)}','${escAttr(b.name)}')`}"`:''}>
+        ${b.img?`<img src="${escAttr(b.img)}" alt="" loading="lazy">`
+               :`<div class="ph" style="display:grid;flex-direction:column;gap:6px"><span style="font-size:30px">📷</span><span style="font-size:11px;color:#8fa0bf">待补图</span></div>`}
+        ${b.th?`<span class="badge">${esc(b.th)}</span>`:''}
+        ${noImg?`<span class="pendingTag">待补截图</span>`:''}
+      </div>
+      <div class="body">
+        ${b.type?`<div class="typ">${esc(b.type)}${isCloud?' · ☁云端':''}</div>`:''}
+        <h3>${esc(b.name||'未命名阵型')}</h3>
+        ${(b.tags||[]).length?`<div style="font-size:11.5px;color:var(--sub)">${esc((b.tags||[]).join(' · '))}</div>`:''}
+        ${isCloud?`
+          <div class="votebar" data-vote="${key}">
+            <button class="vbtn up ${mv==='up'?'on':''}" onclick="event.stopPropagation();vote('${key}','up',this)">👍 <span class="n">${st.up}</span></button>
+            <button class="vbtn down ${mv==='down'?'on':''}" onclick="event.stopPropagation();vote('${key}','down',this)">👎 <span class="n">${st.down}</span></button>
+            <button class="vbtn fb" onclick="event.stopPropagation();openComment('${key}','${escAttr(b.name)}')">💬 评论</button>
+          </div>
+        `:''}
+        ${noImg && !b.fromCloud?`<button class="btn primary copybtn" onclick="event.stopPropagation();uploadShot('${b.id}')">📷 上传截图补图</button>`:''}
+        ${b.link?`<button class="btn blue copybtn" onclick="event.stopPropagation();copyLink(this,'${escAttr(b.link)}')">📋 复制导入链接</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+// 评论（复用反馈弹窗，简化为纯文字评论 + 分类）
+function openComment(key, title){
+  commentState.key = key;
+  // 同步到 fbState，复用 submitFeedback 提交逻辑
+  fbState = { key, title, result:null, streams:[] };
+  document.getElementById('fbSub').textContent = '给「'+(title||'该阵型')+'」评论：说说它好不好用、防住什么流派';
+  document.getElementById('fbText').value='';
+  document.getElementById('fbResult').style.display='none';
+  document.querySelectorAll('#fbResult button').forEach(b=>b.classList.remove('on'));
+  document.getElementById('fbStreams').innerHTML = STREAMS.map(s=>
+    `<button type="button" class="streamchip" data-s="${esc(s)}" onclick="toggleStream(this)">${esc(s)}</button>`).join('');
+  document.getElementById('fbRecList').innerHTML='';
+  document.getElementById('fbOverlay').classList.add('show');
+}
+function delMine(id){
+  if(String(id).startsWith('cloud_')){
+    if(!confirm('这是云端阵型，删除会从服务器移除（所有人看不到）？')) return;
+    const cid = id.replace('cloud_','');
+    api('/api/customs/'+encodeURIComponent(cid),{method:'DELETE'}).then(()=>{
+      CLOUD_CUSTOMS = CLOUD_CUSTOMS.filter(c=>c.id!==cid); renderMine(); toast('已从云端删除');
+    }).catch(()=>toast('删除失败','err'));
+    return;
+  }
+  if(!confirm('从「我的阵型」移除这个阵型？')) return;
+  mine = mine.filter(b=>b.id!==id); saveMine(); renderMine(); toast('已移除');
+}
+
+/* ================= 选择删除 / 批量删除 ================= */
+let selectMode = false;
+let selected = new Set();
+function enterSelectMode(){ selectMode=true; selected=new Set(); renderMine(); }
+function exitSelectMode(){ selectMode=false; selected=new Set(); renderMine(); }
+function toggleSelect(id, cb){
+  if(selected.has(id)) selected.delete(id); else selected.add(id);
+  if(cb) cb.checked = selected.has(id);
+  const sc=document.getElementById('selCount'); if(sc) sc.textContent = selected.size;
+  // 更新卡片高亮
+  const card = cb ? cb.closest('.card') : null;
+  if(card) card.classList.toggle('selected', selected.has(id));
+}
+function selectAllVisible(){
+  const q = document.getElementById('mineSearch').value.trim().toLowerCase();
+  const localLinks = new Set(mine.map(m=>normalizeLink(m.link)).filter(Boolean));
+  const cloudExtra = cloudAsLocal().filter(c=>{
+    const nk=normalizeLink(c.link);
+    return !(nk && localLinks.has(nk)) && !mine.some(m=>m.fromCloud && m.cloudId===c.cloudId);
+  });
+  let list=[...mine,...cloudExtra];
+  if(q) list=list.filter(b=>{const hay=[b.name,b.note,(b.tags||[]).join(' '),b.link,b.th,b.type].join(' ').toLowerCase();return hay.includes(q);});
+  const allSel = list.every(b=>selected.has(b.id));
+  if(allSel) selected.clear(); else list.forEach(b=>selected.add(b.id));
+  renderMine();
+}
+function batchDeleteSelected(){
+  if(!selected.size){ toast('还没勾选任何阵型','err'); return; }
+  const ids = new Set(selected);
+  const cloudLocalIds = [...ids].filter(id=>String(id).startsWith('cloud_'));
+  const localIds = [...ids].filter(id=>!String(id).startsWith('cloud_'));
+  if(!confirm(`确定删除所选 ${ids.size} 个阵型？${cloudLocalIds.length?'（其中 '+cloudLocalIds.length+' 个是云端阵型，会同时从服务器移除）':''}此操作不可恢复。`)) return;
+  // 删本地
+  const before = mine.length;
+  mine = mine.filter(b=>!localIds.includes(b.id));
+  saveMine();
+  // 删云端
+  const dels = cloudLocalIds.map(cid=>{
+    const realId = cid.replace('cloud_','');
+    return api('/api/customs/'+encodeURIComponent(realId),{method:'DELETE'})
+      .then(()=>{ CLOUD_CUSTOMS = CLOUD_CUSTOMS.filter(c=>c.id!==realId); }).catch(()=>{});
+  });
+  Promise.all(dels).finally(()=>{
+    selectMode=false; selected=new Set();
+    renderMine();
+    toast(`🗑️ 已删除 ${before-mine.length + cloudLocalIds.length} 个阵型`,'ok');
+  });
+}
+
+/* 导入菜单（合并粘贴/批量/监听三种方式到一个弹窗） */
+function openImportMenu(){
+  document.getElementById('importMenuOverlay').classList.add('show');
+}
+function closeImportMenu(){ document.getElementById('importMenuOverlay').classList.remove('show'); }
+function importChoose(way){
+  closeImportMenu();
+  if(way==='paste') openPasteCollect();
+  else if(way==='bulk') openBulkImport();
+  else if(way==='clip') startClipWatch();
+}
+
+/* ================= 批量导入链接 / 剪贴板监听 / 待补图 ================= */
+// 分类 COC 链接：'base'=阵型(OpenLayout) / 'army'=军队(OpenArmyOverview) / 'other'
+function classifyCocLink(link){
+  const dec = safeDecode(String(link||''));
+  // 显式 action 判定
+  const action = (dec.match(/[?&]action=([^&]+)/i)||[])[1] || '';
+  if(/OpenArmyOverview/i.test(action)) return 'army';
+  if(/OpenArmy|army/i.test(action) && !/OpenLayout/i.test(action)) return 'army';
+  if(/[?&]army=/i.test(dec) && !/[?&]id=TH/i.test(dec)) return 'army';
+  if(/OpenLayout/i.test(action)) return 'base';
+  // 兜底：有 id=TH 且无 army 参数 => base
+  if(/[?&]id=TH\d/i.test(dec) && !/[?&]army=/i.test(dec)) return 'base';
+  if(/link\.clashofclans\.com/i.test(dec)) {
+    // 是 COC 链接但判断不了 action：有 army= 当军队，否则默认阵型
+    return /[?&]army=/i.test(dec) ? 'army' : 'base';
+  }
+  return 'other';
+}
+// 从任意文本里抽 COC 链接（全部，含army）
+function extractCocLinks(text){
+  const re=/https?:\/\/link\.clashofclans\.com\/[^\s"'<>）)】\]，,]+/gi;
+  return [...new Set((String(text||'').match(re)||[]))];
+}
+// 只抽阵型(base)链接
+function extractBaseLinks(text){
+  return extractCocLinks(text).filter(l=>classifyCocLink(l)==='base');
+}
+// 安全 decode：畸形 % 序列不抛错
+function safeDecode(s){ try{ return decodeURIComponent(s); }catch(e){ return s; } }
+// 从链接里推断大本营等级（id=TH13%3A... → 13）和其它信息
+function parseLinkInfo(link){
+  let th='';
+  const dec = safeDecode(link);
+  const m = dec.match(/[?&]id=TH(\d+)/i) || dec.match(/TH(\d+)/i) || link.match(/TH(\d+)/i);
+  if(m){ th = m[1]+'本'; }
+  return { th, name: '阵型 ' + (th||'') + ' #' + Math.random().toString(36).slice(2,6).toUpperCase() };
+}
+// 批量把链接建成"待补图"卡片（只导 base；army 等跳过）
+function bulkAddLinks(links, silent){
+  if(!links || !links.length){ if(!silent) toast('没识别到 COC 阵型链接','err'); return 0; }
+  const seen = new Set(mine.map(m=>normalizeLink(m.link)).filter(Boolean));
+  let n=0, skip=0, armySkip=0;
+  links.forEach(link=>{
+    const kind = classifyCocLink(link);
+    if(kind==='army'){ armySkip++; return; }      // 军队链接不进阵型库
+    if(kind!=='base'){ return; }                    // 其它忽略
+    const nk = normalizeLink(link);
+    if(nk && seen.has(nk)){ skip++; return; }
+    let info;
+    try{ info=parseLinkInfo(link); }catch(e){ info={th:'', name:'阵型 #'+Math.random().toString(36).slice(2,6).toUpperCase()}; }
+    mine.push({ id:uid(), name:info.name, th:info.th, type:'部落战争',
+      link, tags:[], note:'自动导入，待补截图', img:'', pending:true, ts:Date.now() });
+    if(nk) seen.add(nk);
+    n++;
+  });
+  try{ saveMine(); }catch(e){ toast('保存失败：本地存储已满？','err'); }
+  renderMine();
+  bulkAddLinks.lastArmySkip = armySkip;
+  bulkAddLinks.lastDupSkip = skip;
+  if(n && !silent) toast(`✅ 已导入 ${n} 个阵型`+(armySkip?`（跳过 ${armySkip} 个军队链接）`:'')+(skip?`（跳过 ${skip} 个重复）`:''),'ok');
+  else if(!n && armySkip && !silent) toast(`这 ${armySkip} 个是军队链接，不是阵型，已跳过`,'err');
+  else if(!n && skip && !silent) toast(`这 ${skip} 个链接已经在库里了`,'err');
+  return n;
+}
+
+/* 粘贴收集（file:// 友好，无需剪贴板权限） */
+let pasteTotal=0;
+function openPasteCollect(){
+  pasteTotal=0;
+  const box=document.getElementById('pasteBox');
+  box.value='';
+  document.getElementById('pasteLog').innerHTML='<span style="color:#5f7096">粘贴记录会显示在这里</span>';
+  document.getElementById('pasteOverlay').classList.add('show');
+  setTimeout(()=>box.focus(), 150);
+}
+function closePasteCollect(){
+  document.getElementById('pasteOverlay').classList.remove('show');
+  toast(pasteTotal?`✅ 本次粘贴收集了 ${pasteTotal} 个阵型`:'已关闭');
+}
+// 绑定：pasteBox 一旦粘贴就处理
+function bindPasteCollect(){
+  const box=document.getElementById('pasteBox'); if(!box || box.__bound) return;
+  box.__bound=true;
+  box.addEventListener('paste', function(e){
+    const txt=(e.clipboardData||window.clipboardData).getData('text') || '';
+    if(!txt) return;
+    e.preventDefault();
+    handlePasteText(txt);
+    box.value='';
+  });
+  // 回车/手动输入也尝试解析（兜底）
+  box.addEventListener('input', function(){
+    if(box.value.length>25){
+      const t=box.value; box.value='';
+      handlePasteText(t);
+    }
+  });
+}
+function handlePasteText(txt){
+  const all = extractCocLinks(txt);
+  if(!all.length){
+    appendPasteLog(`<span style="color:#8fa0bf">忽略（不含 COC 链接）：${esc(txt.slice(0,40))}…</span>`);
+    return;
+  }
+  const baseLinks = all.filter(l=>classifyCocLink(l)==='base');
+  const armyLinks = all.filter(l=>classifyCocLink(l)==='army');
+  const added = bulkAddLinks(baseLinks, true);
+  let msg = '';
+  if(added) msg += `<span style="color:#3ddc84">✅ 导入 ${added} 个阵型</span>`;
+  if(armyLinks.length) msg += `${added?'，':''}<span style="color:#f5b731">跳过 ${armyLinks.length} 个军队链接(非阵型)</span>`;
+  if(baseLinks.length && !added && !armyLinks.length) msg += `<span style="color:#8fa0bf">这 ${baseLinks.length} 个阵型链接已在库里</span>`;
+  if(added) pasteTotal += added;
+  appendPasteLog(msg || `<span style="color:#8fa0bf">没有可导入的阵型链接</span>`);
+}
+function appendPasteLog(html){
+  const log=document.getElementById('pasteLog');
+  if(log.firstChild && log.firstChild.tagName==='SPAN' && log.firstChild.textContent.includes('粘贴记录')) log.innerHTML='';
+  const line=document.createElement('div'); line.style.margin='3px 0'; line.innerHTML=html;
+  log.insertBefore(line, log.firstChild);
+}
+
+/* 批量导入弹窗 */
+function openBulkImport(){
+  document.getElementById('bulkText').value='';
+  document.getElementById('bulkPreview').innerHTML='<span style="color:#5f7096;font-size:12px">粘贴后这里会显示识别到的链接</span>';
+  document.getElementById('bulkOverlay').classList.add('show');
+}
+function closeBulkImport(){ document.getElementById('bulkOverlay').classList.remove('show'); }
+function previewBulk(){
+  const t=document.getElementById('bulkText').value;
+  const all=extractCocLinks(t);
+  const box=document.getElementById('bulkPreview');
+  if(!all.length){ box.innerHTML='<span style="color:#ffb3bb;font-size:12px">没识别到 clashofclans 链接</span>'; return; }
+  const base=all.filter(l=>classifyCocLink(l)==='base');
+  const army=all.filter(l=>classifyCocLink(l)==='army');
+  let head = `<div style="font-size:12px;color:#3ddc84;margin-bottom:6px">识别到 ${base.length} 个阵型链接`;
+  if(army.length) head += `，<span style="color:#f5b731">${army.length} 个军队链接会被跳过</span>`;
+  head += `：</div>`;
+  box.innerHTML = head +
+    base.map(l=>{ const i=parseLinkInfo(l); return `<div style="font-size:11.5px;color:#8fa0bf;word-break:break-all;margin-bottom:3px">• 阵型 ${esc(i.th||'?')} ${esc(l.slice(0,58))}…</div>`;}).join('') +
+    army.map(l=>`<div style="font-size:11.5px;color:#f5b731;word-break:break-all;margin-bottom:3px;opacity:.7">• 军队（跳过）${esc(l.slice(0,50))}…</div>`).join('');
+}
+function doBulkImport(){
+  const all=extractCocLinks(document.getElementById('bulkText').value);
+  const base=all.filter(l=>classifyCocLink(l)==='base');
+  const n=bulkAddLinks(base);
+  if(n){ closeBulkImport(); switchMain('mine'); }
+  else if(!base.length && all.length) toast('这些是军队链接，不是阵型，无法导入','err');
+}
+
+/* 剪贴板监听（连续复制 → 自动验证 → 自动导入） */
+let clipTimer=null, clipCount=0, clipArmySkip=0;
+let processedClips = new Set();  // 已处理过的剪贴板内容，避免重复
+function clipboardEnvOk(){
+  // file:// 永远读不了剪贴板（即便 isSecureContext 为 true）
+  const isFile = location.protocol==='file:';
+  const isLocalhost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  const secure = (!isFile) && (window.isSecureContext || location.protocol==='https:' || isLocalhost);
+  const hasApi = !!(navigator.clipboard && navigator.clipboard.readText);
+  return { secure, hasApi, isFile };
+}
+// 判断字符串里有没有阵型链接（不含则视为非阵型，忽略）
+function looksLikeCocLink(txt){ return /link\.clashofclans\.com/i.test(txt||''); }
+
+async function startClipWatch(){
+  if(clipTimer){ stopClipWatch(); return; }
+  const env = clipboardEnvOk();
+  if(env.isFile){
+    // file:// 明确不支持 -> 自动切到"粘贴收集"，并说清楚
+    toast('file:// 打开无法读剪贴板（浏览器限制）。已改为「粘贴收集」：复制链接后在框里 Ctrl+V 即可','err');
+    setTimeout(()=>{ if(typeof openPasteCollect==='function') openPasteCollect(); }, 100);
+    return;
+  }
+  if(!env.hasApi){
+    toast('这个浏览器不支持剪贴板读取，请用「📥 批量导入链接」粘贴','err');
+    return;
+  }
+  if(!env.secure){
+    toast('请用 start.bat 的 localhost 打开才能监听剪贴板','err');
+    setTimeout(()=>{ if(typeof openBulkImport==='function') openBulkImport(); }, 100);
+    return;
+  }
+  // 申请一次剪贴板权限
+  try{
+    await navigator.clipboard.readText();
+  }catch(e){
+    toast('没有剪贴板权限：点地址栏左侧图标把「剪贴板」设为允许，再点一次监听','err');
+    setTimeout(()=>{ if(typeof openBulkImport==='function') openBulkImport(); }, 100);
+    return;
+  }
+  showClipBar(true);
+  clipCount = 0; clipArmySkip = 0; processedClips = new Set();
+  // 记录当前剪贴板为"已处理"基线（不导入旧内容）
+  try{ const cur=await navigator.clipboard.readText(); if(cur) processedClips.add(cur); }catch(e){}
+  updateClipBar();
+  toast('📋 监听已开启：复制阵型链接后，切回本页面会自动识别导入','ok');
+
+  const pollOnce = async ()=>{
+    let txt;
+    try{ txt = await navigator.clipboard.readText(); }
+    catch(e){ return; } // 失焦/无权限
+    if(!txt || processedClips.has(txt)) return;
+    processedClips.add(txt);           // 标记已处理（同一内容不再处理）
+    const all = extractCocLinks(txt);
+    if(!all.length) return;            // 无 COC 链接忽略
+    const baseLinks = all.filter(l=>classifyCocLink(l)==='base');
+    const armyCnt = all.filter(l=>classifyCocLink(l)==='army').length;
+    if(!baseLinks.length && armyCnt){
+      // 复制的是军队链接——提示但不导入
+      clipArmySkip += armyCnt;
+      updateClipBar();
+      toast('这段是军队链接(army)，不是阵型，已忽略','err');
+      return;
+    }
+    if(!baseLinks.length) return;
+    const added = bulkAddLinks(baseLinks, true);
+    if(added){ clipCount += added; updateClipBar(); flashClipBar(); }
+  };
+  clipTimer = setInterval(pollOnce, 1000);
+  // 关键：切回页面(focus)那一刻立即补读一次——因为失焦期间轮询读不到
+  window.__clipFocusHandler = ()=>{ setTimeout(pollOnce, 200); };
+  window.addEventListener('focus', window.__clipFocusHandler);
+}
+function stopClipWatch(){
+  if(clipTimer){ clearInterval(clipTimer); clipTimer=null; }
+  if(window.__clipFocusHandler){ window.removeEventListener('focus', window.__clipFocusHandler); window.__clipFocusHandler=null; }
+  showClipBar(false);
+  toast('已停止剪贴板监听'+(clipCount?`（本次共收集 ${clipCount} 个）`:''));
+}
+function showClipBar(on){
+  let bar=document.getElementById('clipWatchBar');
+  if(on){
+    if(!bar){
+      bar=document.createElement('div'); bar.id='clipWatchBar';
+      document.body.appendChild(bar);
+    }
+    updateClipBar();
+    bar.style.display='flex';
+  } else if(bar){ bar.style.display='none'; }
+}
+function updateClipBar(){
+  const bar=document.getElementById('clipWatchBar'); if(!bar) return;
+  bar.innerHTML=`<span>🔴 正在监听 · 已收集 <b>${clipCount}</b> 个阵型${clipArmySkip?` · 已忽略 ${clipArmySkip} 个军队链接`:''} · 复制阵型链接自动导入（军队/其它自动忽略）</span><button onclick="stopClipWatch()">停止</button>`;
+}
+function flashClipBar(){ const bar=document.getElementById('clipWatchBar'); if(bar){ bar.classList.add('flash'); setTimeout(()=>bar.classList.remove('flash'),600); } }
+
+/* 补图：给待补图卡片上传截图 */
+function uploadShot(id){
+  const item = mine.find(m=>m.id===id); if(!item) return;
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=ev=>{ item.img=ev.target.result; item.pending=false; saveMine(); renderMine(); toast('✅ 截图已补上','ok'); };
+    r.readAsDataURL(f);
+  };
+  inp.click();
+}
+
+/* ================= 添加/编辑 ================= */
+let pendingImage = null;
+function openAdd(){
+  document.getElementById('addTitle').textContent='添加到我的阵型';
+  ['fName','fLink','fTags','fNote','addImgUrl'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('addTH').value='19本'; document.getElementById('fType2').value='部落战争';
+  document.getElementById('addPrev').innerHTML='图片预览';
+  document.getElementById('addFile').value='';
+  pendingImage=null;
+  document.getElementById('addOverlay').classList.add('show');
+}
+function closeAdd(){ document.getElementById('addOverlay').classList.remove('show'); }
+function switchTab(tab, el){
+  el.parentNode.querySelectorAll('.tabbtn').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#addOverlay .tabpane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pane-'+tab).classList.add('active');
+}
+function onAddFile(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader(); r.onload=ev=>{pendingImage=ev.target.result; showPrev(ev.target.result);}; r.readAsDataURL(f);
+}
+function onAddUrl(url){
+  if(!url) return;
+  const img=new Image(); img.crossOrigin='anonymous';
+  img.onload=()=>{pendingImage=url; showPrev(url);};
+  img.onerror=()=>{pendingImage=url; showPrev(url,true);};
+  img.src=url;
+}
+function showPrev(src, fallback){
+  const box=document.getElementById('addPrev');
+  box.innerHTML = fallback
+    ? `<span style="color:#8fa0bf;font-size:12px;padding:10px;text-align:center">无法预览（可能防盗链），仍会保存链接：<br><span style="word-break:break-all">${esc(src)}</span></span>`
+    : `<img src="${escAttr(src)}">`;
+}
+function saveBase(){
+  const name=document.getElementById('fName').value.trim();
+  if(!name){ toast('请填写阵型名称','err'); return; }
+  const link=document.getElementById('fLink').value.trim();
+  if(link && findDupByLink(link)){ toast('⚠️ 这个链接已存在，无需重复添加','err'); return; }
+  mine.push({
+    id:uid(), name,
+    th:document.getElementById('addTH').value,
+    type:document.getElementById('fType2').value,
+    link:link,
+    tags:document.getElementById('fTags').value.split(/[,，]/).map(s=>s.trim()).filter(Boolean),
+    note:document.getElementById('fNote').value.trim(),
+    img:pendingImage||'', ts:Date.now()
+  });
+  saveMine(); closeAdd(); renderMine(); toast('✅ 已添加','ok');
+}
+
+/* ================= 链接生成器（截图） ================= */
+function openCrawler(){
+  document.getElementById('crawlUrl').value='';
+  document.getElementById('crawlName').value='';
+  document.getElementById('crawlTH').value='19本';
+  document.getElementById('crawlPrev').innerHTML='预览区';
+  document.getElementById('cropArea').style.display='none';
+  document.getElementById('crawlSaveBtn').disabled=true;
+  pendingImage=null;
+  document.getElementById('crawlerOverlay').classList.add('show');
+}
+function closeCrawler(){ document.getElementById('crawlerOverlay').classList.remove('show'); }
+function isImageUrl(u){ return /\.(png|jpe?g|gif|webp|bmp|avif)(\?.*)?$/i.test(u.trim()); }
+
+function loadDirectImage(){
+  const u=document.getElementById('crawlUrl').value.trim();
+  if(!u){ toast('先粘贴链接','err'); return; }
+  setCrawlPreview(u, ()=>toast('✅ 图片已加载','ok'));
+}
+async function crawlAuto(){
+  const u=document.getElementById('crawlUrl').value.trim();
+  if(!u){ toast('先粘贴链接','err'); return; }
+  if(isImageUrl(u)){ setCrawlPreview(u,()=>toast('✅ 图片直链已加载','ok')); return; }
+  toast('正在尝试抓取页面分享图…');
+  const candidates=[];
+  const proxies=[
+    x=>`https://api.allorigins.win/raw?url=${encodeURIComponent(x)}`,
+    x=>`https://corsproxy.io/?${encodeURIComponent(x)}`,
+    x=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(x)}`,
+  ];
+  for(const p of proxies){
+    try{
+      const res=await fetch(p(u)); if(!res.ok) continue;
+      const text=await res.text();
+      const m=text.match(/<meta[^>]+(?:property|name)=["'](?:og:image|twitter:image)["'][^>]+content=["']([^"']+)["']/i)
+             || text.match(/<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:image|twitter:image)["']/i);
+      if(m&&m[1]){ candidates.push(m[1]); break; }
+      const imgs=[...text.matchAll(/<img[^>]+src=["']([^"']+\.(?:png|jpe?g|webp)[^"']*)["']/gi)].map(x=>x[1]);
+      if(imgs.length){ candidates.push(imgs[0]); break; }
+    }catch(e){}
+  }
+  if(candidates.length){
+    let img=candidates[0];
+    if(img.startsWith('//')) img='https:'+img;
+    else if(img.startsWith('/')){ try{img=new URL(u).origin+img;}catch(e){} }
+    setCrawlPreview(img,()=>toast('✅ 已抓到页面图片','ok'));
+  } else toast('没抓到分享图，请用「打开页面框选截图」或「直接当图片加载」','err');
+}
+function setCrawlPreview(src, okCb){
+  const box=document.getElementById('crawlPrev');
+  box.innerHTML=`<span style="color:#8fa0bf">加载中…</span>`;
+  const img=new Image(); img.crossOrigin='anonymous';
+  img.onload=()=>{
+    box.innerHTML='';
+    const im=new Image(); im.src=src; im.style.width='100%'; im.style.height='100%'; im.style.objectFit='contain';
+    box.appendChild(im); pendingImage=src;
+    document.getElementById('crawlSaveBtn').disabled=false; okCb&&okCb();
+  };
+  img.onerror=()=>{
+    box.innerHTML=`<span style="color:#ffb3bb;font-size:12px;padding:10px;text-align:center">图片被防盗链拦截或无法加载。<br>可尝试「打开页面框选截图」。<br><span style="word-break:break-all">${esc(src)}</span></span>`;
+    pendingImage=src; document.getElementById('crawlSaveBtn').disabled=false;
+  };
+  img.src=src;
+}
+function openPageForShot(){
+  const u=document.getElementById('crawlUrl').value.trim();
+  if(!u){ toast('先粘贴链接','err'); return; }
+  window.open(u,'_blank');
+  toast('已在新标签打开。截图后用「📥 直接当图片加载」贴图片直链，或打开图片链接进入框选。');
+  enterCrop(u);
+}
+function enterCrop(src){
+  const area=document.getElementById('cropArea'), img=document.getElementById('cropImg');
+  area.style.display='block';
+  img.onload=()=>{ resetCrop(); toast('可在图片上拖拽框选'); };
+  img.onerror=()=>{ area.style.display='none'; };
+  img.src=src;
+}
+let cropStart=null, cropping=false;
+const cropRectEl=document.getElementById('cropRect'), cropImgEl=document.getElementById('cropImg');
+cropImgEl.addEventListener('mousedown', e=>{
+  const r=cropImgEl.getBoundingClientRect();
+  cropStart={x:e.clientX-r.left,y:e.clientY-r.top}; cropping=true;
+  cropRectEl.style.display='block';
+  cropRectEl.style.left=cropStart.x+'px'; cropRectEl.style.top=cropStart.y+'px';
+  cropRectEl.style.width='0px'; cropRectEl.style.height='0px';
+});
+cropImgEl.addEventListener('mousemove', e=>{
+  if(!cropping||!cropStart) return;
+  const r=cropImgEl.getBoundingClientRect();
+  const x=e.clientX-r.left, y=e.clientY-r.top;
+  const left=Math.min(x,cropStart.x), top=Math.min(y,cropStart.y);
+  const w=Math.abs(x-cropStart.x), h=Math.abs(y-cropStart.y);
+  Object.assign(cropRectEl.style,{left:left+'px',top:top+'px',width:w+'px',height:h+'px'});
+});
+window.addEventListener('mouseup', ()=>{ cropping=false; });
+function resetCrop(){ cropRectEl.style.display='none'; cropStart=null; cropping=false; cropRectEl.style.cssText=''; }
+function doCrop(){
+  const rect=cropRectEl.getBoundingClientRect(), imgR=cropImgEl.getBoundingClientRect();
+  if(rect.width<5||rect.height<5){ toast('先框选一个区域','err'); return; }
+  const sx=(rect.left-imgR.left)*cropImgEl.naturalWidth/imgR.width;
+  const sy=(rect.top-imgR.top)*cropImgEl.naturalHeight/imgR.height;
+  const sw=rect.width*cropImgEl.naturalWidth/imgR.width;
+  const sh=rect.height*cropImgEl.naturalHeight/imgR.height;
+  const cv=document.createElement('canvas'); cv.width=Math.round(sw); cv.height=Math.round(sh);
+  try{
+    cv.getContext('2d').drawImage(cropImgEl,sx,sy,sw,sh,0,0,cv.width,cv.height);
+    const data=cv.toDataURL('image/png'); pendingImage=data;
+    const box=document.getElementById('crawlPrev'); box.innerHTML='';
+    const im=new Image(); im.src=data; im.style.width='100%'; im.style.height='100%'; im.style.objectFit='contain'; box.appendChild(im);
+    document.getElementById('crawlSaveBtn').disabled=false;
+    document.getElementById('cropArea').style.display='none';
+    toast('✅ 已裁剪，可保存','ok');
+  }catch(e){ toast('裁剪失败：图片跨域受限，请先下载图片到本地再上传','err'); }
+}
+function saveCrawled(){
+  if(!pendingImage){ toast('先抓取/裁剪一张图','err'); return; }
+  const name=document.getElementById('crawlName').value.trim()||'未命名阵型';
+  const link=document.getElementById('crawlUrl').value.trim();
+  const dup=findDupByLink(link);
+  if(dup){
+    // 已有同链接 -> 只补图，不新增
+    if(!dup.img){ dup.img=pendingImage; dup.pending=false; saveMine(); closeCrawler(); renderMine(); toast('✅ 该链接已存在，已为其补充截图','ok'); }
+    else { toast('⚠️ 这个链接已存在且已有图，无需重复添加','err'); }
+    return;
+  }
+  mine.push({id:uid(),name,th:document.getElementById('crawlTH').value,type:'部落战争',
+    link,tags:[],note:'由链接生成',img:pendingImage,ts:Date.now()});
+  saveMine(); closeCrawler(); renderMine(); toast('✅ 已入库到「我的阵型」','ok');
+}
+
+/* ================= 导入导出 ================= */
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(mine,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='我的阵型-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+  toast('已导出');
+}
+function importJSON(){ document.getElementById('importFile').click(); }
+function doImport(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const arr=JSON.parse(ev.target.result);
+      if(!Array.isArray(arr)) throw new Error('不是数组');
+      const seen = new Set(mine.map(m=>normalizeLink(m.link)).filter(Boolean));
+      let n=0, skip=0;
+      arr.forEach(it=>{
+        if(!it||!it.name) return;
+        const nk=normalizeLink(it.link);
+        if(nk && seen.has(nk)){ skip++; return; }   // 同链接跳过
+        it.id=it.id||uid(); it.ts=it.ts||Date.now();
+        mine.push(it);
+        if(nk) seen.add(nk);
+        n++;
+      });
+      try{ saveMine(); }catch(err2){
+        toast('导入量太大，本地存储装不下（图片过多），已保留但可能无法保存','err');
+      }
+      renderMine(); toast(`✅ 导入 ${n} 个阵型`+(skip?`（跳过 ${skip} 个重复链接）`:''),'ok');
+    }catch(err){ toast('导入失败：不是有效 JSON 文件','err'); }
+  };
+  r.readAsText(f); e.target.value='';
+}
+
+/* ================= toast ================= */
+let toastT;
+function toast(msg, type){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show '+(type||'');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.className='toast '+(type||''),2600);
+}
+
+/* ================= 关闭 ================= */
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('show'); }));
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){ document.querySelectorAll('.overlay.show').forEach(o=>o.classList.remove('show')); document.getElementById('lightbox').classList.remove('show'); }
+});
+
+/* ================= init ================= */
+loadMine();
+(function init(){
+  if(!window.COC_DATA){ 
+    document.getElementById('libGrid').innerHTML='<div class="empty"><div class="big">⚠️</div><h3>数据文件 data.js 未加载</h3><p>请确保 data.js 与本文件在同一目录</p></div>';
+    return;
+  }
+  // 默认主城、19本、全部
+  lib.mode='home';
+  const levels=Object.keys(COC.home).map(Number).sort((a,b)=>a-b);
+  lib.th = levels.includes(19)?19:levels[levels.length-1];
+  buildTHChips(); buildTypeChips(); renderLib(true);
+  updateMineCount();
+  getMyKey();
+  updateConnBadge();
+  bindPasteCollect();
+  // 可选：后台探测是否有后端（有则增强为共享，没有就纯本地，不影响使用）
+  probeServer();
+})();
+</script>
+</body>
+</html>

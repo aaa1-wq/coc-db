@@ -1,0 +1,12 @@
+# Render 部署配置（可选：用 Blueprint 一键部署时用）
+# 在 Render 里 New + → Blueprint → 选仓库，会自动读这个文件
+services:
+  - type: web
+    name: coc-base-db
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        sync: false   # 部署后在面板手动填入 Neon 连接串

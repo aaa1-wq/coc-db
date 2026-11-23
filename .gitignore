@@ -1,0 +1,10 @@
+# 本地数据库（不要传，公网用 Neon Postgres）
+coc.db
+*.db
+
+# 依赖
+node_modules/
+
+# 临时/测试
+_t*.html
+*.log
